@@ -34,28 +34,61 @@ def home():
 def branch():
     branchesref = db.collection('Branches')
     docs = branchesref.stream()
-    branch_list=[]
+    headings=['name','location']
+    data=[]
     for doc in docs:
-        branch_list.append('{} : {}'.format(doc.id,doc.to_dict()))
-    return branch_list
+        temp = []
+        for header in headings:
+            temp.append(doc.to_dict()[header])
+        data.append(temp)
 
-@app.route('/emp')
+    return render_template("view_branch.html", data=data, headings=headings)
+
+@app.route('/branch_emp/<name>',methods=["GET", "POST"])
+def branch_employee(name):
+    employeesref = db.collection('Employees')
+    headings=['name','surname','reg_date','email']
+    data=[]
+    query = employeesref.where("branch.name","==", name).stream()
+    for doc in query:
+        temp = []
+        for header in headings:
+            temp.append(doc.to_dict()[header])
+        data.append(temp)
+    return render_template("view_branch_emp.html", data=data, headings=headings)
+
+@app.route('/emp',methods=["GET", "POST"])
 def employee():
     employeesref = db.collection('Employees')
-    emp_list=[] 
-    query = employeesref.where("branch.name","==", "Nicosia Branch").stream()
-    for doc in query:
-        emp_list.append('{} : {}'.format(doc.id,doc.to_dict()))
-    return render_template("view_emp.html")
+    headings=['name','surname','reg_date','email']
+    data=[]
+    docs = employeesref.stream()
+    for doc in docs:
+        temp = []
+        for header in headings:
+            try:
+                temp.append(doc.to_dict()[header])
+            except KeyError:
+                temp.append('')  # handle missing fields by adding empty string
+        data.append(temp)
+    return render_template("view_emp.html", data=data, headings=headings)
 
-@app.route('/cust')
+
+@app.route('/cust',methods=["GET", "POST"])
 def customer():
     customersref = db.collection('Customers')
+    headings=['name','surname','priority','email','age']
+    data=[]
     docs = customersref.stream()
-    cust_list=[]
     for doc in docs:
-        cust_list.append('{} : {}'.format(doc.id,doc.to_dict()))
-    return cust_list
+        temp = []
+        for header in headings:
+            try:
+                temp.append(doc.to_dict()[header])
+            except KeyError:
+                temp.append('')  # handle missing fields by adding empty string
+        data.append(temp)
+    return render_template("view_customer.html", data=data, headings=headings)
 
 #dynamic yap
 @app.route('/queue')

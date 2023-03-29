@@ -4,7 +4,7 @@
   <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Employee List</title>
+  <title>Branch List</title>
   <link rel="stylesheet" href="../static/view_emp.css">
   </head>
   <body class="bg">
@@ -34,7 +34,7 @@
           </li>  
           <li><a href="#">Simulation</a></li>    
       </ul>
-  <h1>done</h1>
+  <h1>lets try if we can see branch list, probably we cant, its fine.</h1>
   
 <table>
   <tr>
@@ -42,15 +42,14 @@
     <th>{{header}}</th>
     {% endfor %}
   </tr>
-
   {% for row in data %}
-  <tr>
-    {% for cell in row %}
-    <td>{{cell}}</td>
-    {% endfor %}
+    <tr>
+      {% for cell in row %}
+      <td>{{cell}}</td>
+      {% endfor %}
+    <td><a href="http://127.0.0.1:5000/branch_emp/{{row[0]}}">Employee List</a></td>
   </tr>
   {% endfor %}
   
 </table>
   </body>
-</html>
