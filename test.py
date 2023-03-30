@@ -1,6 +1,6 @@
 from flask import *
-from firebase_admin import credentials, firestore
-from flask_firebase_admin import FirebaseAdmin
+from firebase_admin import *
+from flask_firebase_admin import *
 
 
 app = Flask(__name__)
@@ -19,13 +19,39 @@ cert = {
 app.config["FIREBASE_ADMIN_CREDENTIAL"] = credentials.Certificate(cert)
 firebase = FirebaseAdmin(app)
 db = firebase.firestore.client()
-  
+app.secret_key= "secret"
 
 
 @app.route('/')
-def login():
+def index():
     return render_template("admin_login.html")
-    
+
+@app.route('/login', methods=['POST'])
+def login():
+    email = request.form['email']
+    password = request.form['password']
+
+    users_ref = db.collection('Employees')
+    query = users_ref.where('email', '==', email).get()
+
+    if len(query) == 1:
+        user = query[0]
+        if user.to_dict()['password'] == password:
+            session["email"]=email  #session mechanism does not work SOLVE !!
+            # user authentication succeeded
+            return render_template("view_branch.html")
+        else:
+            # user authentication failed
+            pass
+    else:
+        # user authentication failed
+        pass
+    return render_template("admin_login.html")
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
 @app.route('/home')
 def home():
     return render_template("home.html")
