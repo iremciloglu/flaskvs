@@ -1,9 +1,15 @@
 from flask import *
-from firebase_admin import *
-from flask_firebase_admin import *
+from firebase_admin import credentials, firestore
+from flask_firebase_admin import FirebaseAdmin
+from flask_wtf import FlaskForm
+from wtforms import StringField, SubmitField
+from wtforms.validators import DataRequired
+import os
 
 
 app = Flask(__name__)
+SECRET_KEY = os.urandom(32)
+app.config['SECRET_KEY'] = SECRET_KEY
 cert = {
         "type": "service_account",
         "project_id": "firestore491test",
@@ -19,45 +25,20 @@ cert = {
 app.config["FIREBASE_ADMIN_CREDENTIAL"] = credentials.Certificate(cert)
 firebase = FirebaseAdmin(app)
 db = firebase.firestore.client()
-app.secret_key= "secret"
+  
 
 
 @app.route('/')
-def index():
-    return render_template("admin_login.html")
-
-@app.route('/login', methods=['POST'])
 def login():
-    email = request.form['email']
-    password = request.form['password']
-
-    users_ref = db.collection('Employees')
-    query = users_ref.where('email', '==', email).get()
-
-    if len(query) == 1:
-        user = query[0]
-        if user.to_dict()['password'] == password:
-            session["email"]=email  #session mechanism does not work SOLVE !!
-            # user authentication succeeded
-            return render_template("view_branch.html")
-        else:
-            # user authentication failed
-            pass
-    else:
-        # user authentication failed
-        pass
     return render_template("admin_login.html")
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('login'))
-@app.route('/home')
+    
+@app.route('/home',methods=["GET", "POST"])
 def home():
     return render_template("home.html")
 
-@app.route('/branch')
-def branch():
+########### view list parts
+@app.route('/branch',methods=["GET", "POST"])
+def branch():# this shows all the branches in the db
     branchesref = db.collection('Branches')
     docs = branchesref.stream()
     headings=['name','location']
@@ -71,7 +52,7 @@ def branch():
     return render_template("view_branch.html", data=data, headings=headings)
 
 @app.route('/branch_emp/<name>',methods=["GET", "POST"])
-def branch_employee(name):
+def branch_employee(name):# this shows the employees according to which branch they are located in the db
     employeesref = db.collection('Employees')
     headings=['name','surname','reg_date','email']
     data=[]
@@ -84,7 +65,7 @@ def branch_employee(name):
     return render_template("view_branch_emp.html", data=data, headings=headings)
 
 @app.route('/emp',methods=["GET", "POST"])
-def employee():
+def employee():# this shows all the employees in the db
     employeesref = db.collection('Employees')
     headings=['name','surname','reg_date','email']
     data=[]
@@ -101,9 +82,9 @@ def employee():
 
 
 @app.route('/cust',methods=["GET", "POST"])
-def customer():
+def customer():# this shows all the customers in the db
     customersref = db.collection('Customers')
-    headings=['name','surname','priority','email','age']
+    headings=['name','surname','priority','email','age','uid']
     data=[]
     docs = customersref.stream()
     for doc in docs:
@@ -116,8 +97,9 @@ def customer():
         data.append(temp)
     return render_template("view_customer.html", data=data, headings=headings)
 
-#dynamic yap
-@app.route('/queue')
+#not ready
+#this will show te queues details and the active customers in the queues
+@app.route('/queue',methods=["GET", "POST"])
 def queue():
     queuesref = db.collection('Queue')
     docs =queuesref.stream()
@@ -125,6 +107,51 @@ def queue():
     for doc in docs:
         queue_list.append('{} : {}'.format(doc.id,doc.to_dict()))
     return queue_list   
+
+    ########### manage/update parts
+
+
+class CustomerForm(FlaskForm):
+    name = StringField("Name:", validators=[DataRequired()])
+    surname = StringField("Surname:", validators=[DataRequired()])
+    email = StringField("Email:", validators=[DataRequired()])
+    priority = StringField("Priority:")
+    age = StringField("Age:")
+    submit = SubmitField("Submit")
+
+@app.route('/delete', methods=["GET", "POST"])
+def delete():
+    return 1
+
+@app.route('/customer_edit/<uid>', methods=["GET","POST"])
+def customer_edit(uid):
+    # Query the Customers collection to get the customer with the specified uid
+    customersref = db.collection('Customers')
+    form = CustomerForm()
+    query = customersref.where("uid", "==", uid).stream()
+    for doc in query:
+        customer = doc.to_dict()
+    if request.method == "POST":
+        # Update the customer fields with the form data
+        customer['name'] = request.form['name']
+        customer['email'] = request.form['email']
+        customer['surname'] = request.form['surname']
+        customer['priority'] = request.form['priority']
+        customer['age'] = request.form['age']
+        try:
+            # Update the customer document in the Customers collection
+            customersref.document(doc.id).update(customer)
+            ###eylül şimdi bu kısımda update(customer) yerine set(customer) veya update({'priority'}:customer['priority']) gibi 
+            # yada update({'priority'}:customer.priority) gibi tek tek update yapılabiliyor hepsini denedim ama olmadı
+            flash("User Updated Successfully!")
+            return redirect("customer_edit.html", uid=uid)
+        except:
+            flash("Error! Looks like there was a problem...try again!")
+            return render_template("customer_edit.html", form=form, customer=customer, uid=uid)
+    else:
+        #return redirect(url_for('home'))
+        return render_template("customer_edit.html", form=form, customer=customer, uid=uid)#delete ekle
+
 
 if __name__ == "__main__":
     app.run(debug=True)

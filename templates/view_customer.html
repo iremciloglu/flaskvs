@@ -14,15 +14,6 @@
     
       <li style="float:right"><a href="#">Log Out</a></li>
       <li style="float:right"><a href="#">Settings</a></li>
-        <li class="dropdown">
-            <a href="javascript:void(0)" class="dropbtn">Manage/Update</a>
-            <div class="dropdown-content">
-              <a href="#">Manage Employees</a>
-              <a href="#">Manage Branches</a>
-              <a href="#">Manage Queues</a>
-              <a href="#">Manage Customers</a>
-            </div>
-          </li>
           <li class="dropdown">
             <a href="javascript:void(0)" class="dropbtn">View Lists</a>
             <div class="dropdown-content">
@@ -48,6 +39,7 @@
     {% for cell in row %}
     <td>{{cell}}</td>
     {% endfor %}
+    <td><a href="http://127.0.0.1:5000/customer_edit/{{row[-1]}}">Edit</a></td>
   </tr>
   {% endfor %}
   
