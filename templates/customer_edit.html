@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Customer Edit</title>
   <link rel="stylesheet" href="../static/view_emp.css">
+  <link rel="stylesheet" href="../static/customer_edit.css">
   </head>
   <body class="bg">
 
@@ -29,7 +30,7 @@
   
   <br/>
 <div class="shadow p-3 mb-5 bg-body rounded">
-  <form action="/update/{{ customer.uid }}" method="POST">
+  <form action="http://127.0.0.1:5000/customer_edit/{{uid}}" method="POST">
       {{ form.hidden_tag() }}
 
       {{ form.name.label(class="form-label") }}
@@ -59,7 +60,7 @@
 
       <br/>
 		
-	  {{ form.submit(class="btn btn-secondary") }}
+      {{ form.submit(class="btn btn-secondary") }}
 
       <a href="{{ url_for('delete', id=id)}}" class="btn btn-danger">Delete</a>
   </form>

@@ -2,8 +2,8 @@ from flask import *
 from firebase_admin import credentials, firestore
 from flask_firebase_admin import FirebaseAdmin
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField, TextAreaField
-from wtforms.validators import DataRequired, EqualTo
+from wtforms import StringField, SubmitField
+from wtforms.validators import DataRequired
 import os
 
 
@@ -108,35 +108,7 @@ def queue():
         queue_list.append('{} : {}'.format(doc.id,doc.to_dict()))
     return queue_list   
 
-    ########### manage update parts
-
-@app.route('/customer_edit/<uid>', methods=["GET", "POST"])
-def customer_edit(uid):
-    # Query the Customers collection to get the customer with the specified uid
-    customersref = db.collection('Customers')
-    headings = ['name', 'surname', 'priority', 'email', 'age']
-    data = []
-    form = CustomerForm()
-    query = customersref.where("uid", "==", uid).stream()
-    for doc in query:
-        customer = doc.to_dict()
-    if request.method == "POST":
-        # Update the customer fields with the form data
-        customer['name'] = request.form['name']
-        customer['email'] = request.form['email']
-        customer['surname'] = request.form['surname']
-        customer['priority'] = request.form['priority']
-        customer['age'] = request.form['age']
-        try:
-            # Update the customer document in the Customers collection
-            customersref.document(uid).set(customer)
-            flash("User Updated Successfully!")
-            return render_template("customer_edit.html", form=form, customer=customer, uid=uid)
-        except:
-            flash("Error! Looks like there was a problem...try again!")
-            return render_template("customer_edit.html", form=form, customer=customer, uid=uid)
-    else:
-        return render_template("customer_edit.html", form=form, customer=customer, uid=uid)#delete ekle
+    ########### manage/update parts
 
 
 class CustomerForm(FlaskForm):
@@ -150,6 +122,36 @@ class CustomerForm(FlaskForm):
 @app.route('/delete', methods=["GET", "POST"])
 def delete():
     return 1
+
+@app.route('/customer_edit/<uid>', methods=["GET","POST"])
+def customer_edit(uid):
+    # Query the Customers collection to get the customer with the specified uid
+    customersref = db.collection('Customers')
+    form = CustomerForm()
+    query = customersref.where("uid", "==", uid).stream()
+    for doc in query:
+        customer = doc.to_dict()
+    if request.method == "POST":
+        # Update the customer fields with the form data
+        customer['name'] = request.form['name']
+        customer['email'] = request.form['email']
+        customer['surname'] = request.form['surname']
+        customer['priority'] = request.form['priority']
+        customer['age'] = request.form['age']
+        try:
+            # Update the customer document in the Customers collection
+            customersref.document(doc.id).update(customer)
+            ###eylül şimdi bu kısımda update(customer) yerine set(customer) veya update({'priority'}:customer['priority']) gibi 
+            # yada update({'priority'}:customer.priority) gibi tek tek update yapılabiliyor hepsini denedim ama olmadı
+            flash("User Updated Successfully!")
+            return redirect("customer_edit.html", uid=uid)
+        except:
+            flash("Error! Looks like there was a problem...try again!")
+            return render_template("customer_edit.html", form=form, customer=customer, uid=uid)
+    else:
+        #return redirect(url_for('home'))
+        return render_template("customer_edit.html", form=form, customer=customer, uid=uid)#delete ekle
+
 
 if __name__ == "__main__":
     app.run(debug=True)
