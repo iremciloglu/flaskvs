@@ -1,9 +1,15 @@
 from flask import *
 from firebase_admin import credentials, firestore
 from flask_firebase_admin import FirebaseAdmin
+from flask_wtf import FlaskForm
+from wtforms import StringField, SubmitField, PasswordField, TextAreaField
+from wtforms.validators import DataRequired, EqualTo
+import os
 
 
 app = Flask(__name__)
+SECRET_KEY = os.urandom(32)
+app.config['SECRET_KEY'] = SECRET_KEY
 cert = {
         "type": "service_account",
         "project_id": "firestore491test",
@@ -26,12 +32,13 @@ db = firebase.firestore.client()
 def login():
     return render_template("admin_login.html")
     
-@app.route('/home')
+@app.route('/home',methods=["GET", "POST"])
 def home():
     return render_template("home.html")
 
-@app.route('/branch')
-def branch():
+########### view list parts
+@app.route('/branch',methods=["GET", "POST"])
+def branch():# this shows all the branches in the db
     branchesref = db.collection('Branches')
     docs = branchesref.stream()
     headings=['name','location']
@@ -45,7 +52,7 @@ def branch():
     return render_template("view_branch.html", data=data, headings=headings)
 
 @app.route('/branch_emp/<name>',methods=["GET", "POST"])
-def branch_employee(name):
+def branch_employee(name):# this shows the employees according to which branch they are located in the db
     employeesref = db.collection('Employees')
     headings=['name','surname','reg_date','email']
     data=[]
@@ -58,7 +65,7 @@ def branch_employee(name):
     return render_template("view_branch_emp.html", data=data, headings=headings)
 
 @app.route('/emp',methods=["GET", "POST"])
-def employee():
+def employee():# this shows all the employees in the db
     employeesref = db.collection('Employees')
     headings=['name','surname','reg_date','email']
     data=[]
@@ -75,9 +82,9 @@ def employee():
 
 
 @app.route('/cust',methods=["GET", "POST"])
-def customer():
+def customer():# this shows all the customers in the db
     customersref = db.collection('Customers')
-    headings=['name','surname','priority','email','age']
+    headings=['name','surname','priority','email','age','uid']
     data=[]
     docs = customersref.stream()
     for doc in docs:
@@ -90,8 +97,9 @@ def customer():
         data.append(temp)
     return render_template("view_customer.html", data=data, headings=headings)
 
-#dynamic yap
-@app.route('/queue')
+#not ready
+#this will show te queues details and the active customers in the queues
+@app.route('/queue',methods=["GET", "POST"])
 def queue():
     queuesref = db.collection('Queue')
     docs =queuesref.stream()
@@ -99,6 +107,49 @@ def queue():
     for doc in docs:
         queue_list.append('{} : {}'.format(doc.id,doc.to_dict()))
     return queue_list   
+
+    ########### manage update parts
+
+@app.route('/customer_edit/<uid>', methods=["GET", "POST"])
+def customer_edit(uid):
+    # Query the Customers collection to get the customer with the specified uid
+    customersref = db.collection('Customers')
+    headings = ['name', 'surname', 'priority', 'email', 'age']
+    data = []
+    form = CustomerForm()
+    query = customersref.where("uid", "==", uid).stream()
+    for doc in query:
+        customer = doc.to_dict()
+    if request.method == "POST":
+        # Update the customer fields with the form data
+        customer['name'] = request.form['name']
+        customer['email'] = request.form['email']
+        customer['surname'] = request.form['surname']
+        customer['priority'] = request.form['priority']
+        customer['age'] = request.form['age']
+        try:
+            # Update the customer document in the Customers collection
+            customersref.document(uid).set(customer)
+            flash("User Updated Successfully!")
+            return render_template("customer_edit.html", form=form, customer=customer, uid=uid)
+        except:
+            flash("Error! Looks like there was a problem...try again!")
+            return render_template("customer_edit.html", form=form, customer=customer, uid=uid)
+    else:
+        return render_template("customer_edit.html", form=form, customer=customer, uid=uid)#delete ekle
+
+
+class CustomerForm(FlaskForm):
+    name = StringField("Name:", validators=[DataRequired()])
+    surname = StringField("Surname:", validators=[DataRequired()])
+    email = StringField("Email:", validators=[DataRequired()])
+    priority = StringField("Priority:")
+    age = StringField("Age:")
+    submit = SubmitField("Submit")
+
+@app.route('/delete', methods=["GET", "POST"])
+def delete():
+    return 1
 
 if __name__ == "__main__":
     app.run(debug=True)

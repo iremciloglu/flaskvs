@@ -4,7 +4,7 @@
   <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Customer List</title>
+  <title>Customer Edit</title>
   <link rel="stylesheet" href="../static/view_emp.css">
   </head>
   <body class="bg">
@@ -25,24 +25,46 @@
           </li>  
           <li><a href="#">Simulation</a></li>    
       </ul>
-  <h1>customer list</h1>
+  <h1>Customer Info</h1>
   
-<table>
-  <tr>
-    {% for header in headings %}
-    <th>{{header}}</th>
-    {% endfor %}
-  </tr>
+  <br/>
+<div class="shadow p-3 mb-5 bg-body rounded">
+  <form action="/update/{{ customer.uid }}" method="POST">
+      {{ form.hidden_tag() }}
 
-  {% for row in data %}
-  <tr>
-    {% for cell in row %}
-    <td>{{cell}}</td>
-    {% endfor %}
-    <td><a href="http://127.0.0.1:5000/customer_edit/{{row[-1]}}">Edit</a></td>
-  </tr>
-  {% endfor %}
-  
-</table>
+      {{ form.name.label(class="form-label") }}
+
+      {{ form.name(class="form-control", value=customer.name) }}
+      <br/>
+
+      {{ form.surname.label(class="form-label") }}
+
+      {{ form.surname(class="form-control", value=customer.surname) }}
+      <br/>
+
+      {{ form.email.label(class="form-label") }}
+
+      {{ form.email(class="form-control", value=customer.email) }}
+      <br/>
+      
+      {{ form.age.label(class="form-label") }}
+
+      {{ form.age(class="form-control", value=customer.age) }}
+
+      <br/>
+      
+      {{ form.priority.label(class="form-label") }}
+
+      {{ form.priority(class="form-control", value=customer.priority) }}
+
+      <br/>
+		
+	  {{ form.submit(class="btn btn-secondary") }}
+
+      <a href="{{ url_for('delete', id=id)}}" class="btn btn-danger">Delete</a>
+  </form>
+</div>
+<br/><br/><br/>
+
   </body>
 </html>
