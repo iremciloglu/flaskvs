@@ -2,7 +2,7 @@ from flask import *
 from firebase_admin import credentials, firestore
 from flask_firebase_admin import FirebaseAdmin
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
+from wtforms import StringField, SubmitField,DateField
 from wtforms.validators import DataRequired
 import os
 
@@ -54,27 +54,33 @@ def branch():# this shows all the branches in the db
 @app.route('/branch_emp/<name>',methods=["GET", "POST"])
 def branch_employee(name):# this shows the employees according to which branch they are located in the db
     employeesref = db.collection('Employees')
-    headings=['name','surname','reg_date','email']
+    headings=['name','surname','reg_date','email','branch','uid']
     data=[]
     query = employeesref.where("branch.name","==", name).stream()
     for doc in query:
         temp = []
         for header in headings:
-            temp.append(doc.to_dict()[header])
+            if header!='branch':
+                temp.append(doc.to_dict()[header])
+            else:
+                temp.append(doc.to_dict()[header]['name'])
         data.append(temp)
     return render_template("view_branch_emp.html", data=data, headings=headings)
 
 @app.route('/emp',methods=["GET", "POST"])
 def employee():# this shows all the employees in the db
     employeesref = db.collection('Employees')
-    headings=['name','surname','reg_date','email']
+    headings=['name','surname','reg_date','email','branch','uid']
     data=[]
     docs = employeesref.stream()
     for doc in docs:
         temp = []
         for header in headings:
             try:
-                temp.append(doc.to_dict()[header])
+                if header!='branch':
+                    temp.append(doc.to_dict()[header])
+                else:
+                    temp.append(doc.to_dict()[header]['name'])
             except KeyError:
                 temp.append('')  # handle missing fields by adding empty string
         data.append(temp)
@@ -108,8 +114,7 @@ def queue():
         queue_list.append('{} : {}'.format(doc.id,doc.to_dict()))
     return queue_list   
 
-    ########### manage/update parts
-
+########### manage/update parts
 
 class CustomerForm(FlaskForm):
     name = StringField("Name:", validators=[DataRequired()])
@@ -118,6 +123,15 @@ class CustomerForm(FlaskForm):
     priority = StringField("Priority:")
     age = StringField("Age:")
     submit = SubmitField("Submit")
+
+class EmployeeForm(FlaskForm):
+    name = StringField("Name:", validators=[DataRequired()])
+    surname = StringField("Surname:", validators=[DataRequired()])
+    email = StringField("Email:", validators=[DataRequired()])
+    reg_date =StringField("Registration Date:")
+    branch_name = StringField("Branch Name:")
+    branch_location = StringField("Branch Location:")
+    submit = SubmitField("Submit")    
 
 @app.route('/delete', methods=["GET", "POST"])
 def delete():
@@ -141,17 +155,40 @@ def customer_edit(uid):
         try:
             # Update the customer document in the Customers collection
             customersref.document(doc.id).update(customer)
-            ###eylül şimdi bu kısımda update(customer) yerine set(customer) veya update({'priority'}:customer['priority']) gibi 
-            # yada update({'priority'}:customer.priority) gibi tek tek update yapılabiliyor hepsini denedim ama olmadı
             flash("User Updated Successfully!")
             return redirect("customer_edit.html", uid=uid)
         except:
             flash("Error! Looks like there was a problem...try again!")
             return render_template("customer_edit.html", form=form, customer=customer, uid=uid)
     else:
-        #return redirect(url_for('home'))
         return render_template("customer_edit.html", form=form, customer=customer, uid=uid)#delete ekle
 
+@app.route('/employee_edit/<uid>', methods=["GET","POST"])
+def employee_edit(uid):
+    # Query the Employees collection to get the employee with the specified uid
+    employeesref = db.collection('Employees')
+    form = EmployeeForm()
+    query = employeesref.where("uid", "==", uid).stream()
+    for doc in query:
+        employee = doc.to_dict()
+    if request.method == "POST":
+        # Update the employee fields with the form data
+        employee['name'] = request.form['name']
+        employee['email'] = request.form['email']
+        employee['surname'] = request.form['surname']
+        employee['reg_date'] = request.form['reg_date']
+        employee['branch']['name'] = request.form['branch_name']
+        employee['branch']['location'] = request.form['branch_location']
+        try:
+            # Update the employee document in the Employees collection
+            employeesref.document(doc.id).update(employee)
+            flash("User Updated Successfully!")
+            return redirect("employee_edit.html", uid=uid)
+        except:
+            flash("Error! Looks like there was a problem...try again!")
+            return render_template("employee_edit.html", form=form, employee=employee, uid=uid)
+    else:
+        return render_template("employee_edit.html", form=form, employee=employee, uid=uid)#delete ekle
 
 if __name__ == "__main__":
     app.run(debug=True)
