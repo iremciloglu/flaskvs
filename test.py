@@ -133,9 +133,21 @@ class EmployeeForm(FlaskForm):
     branch_location = StringField("Branch Location:")
     submit = SubmitField("Submit")    
 
-@app.route('/delete', methods=["GET", "POST"])
-def delete():
-    return 1
+@app.route('/delete_customer/<uid>', methods=["GET", "POST"])
+def delete_customer(uid):
+    customersref = db.collection('Customers')
+    query = customersref.where("uid", "==", uid).stream()
+    for doc in query:
+        customersref.document(doc.id).delete()    
+    return redirect('http://127.0.0.1:5000/cust')
+
+@app.route('/delete_employee/<uid>', methods=["GET", "POST"])
+def delete_employee(uid):
+    employeesref = db.collection('Employees')
+    query = employeesref.where("uid", "==", uid).stream()
+    for doc in query:
+        employeesref.document(doc.id).delete()        
+    return redirect('http://127.0.0.1:5000/emp')
 
 @app.route('/customer_edit/<uid>', methods=["GET","POST"])
 def customer_edit(uid):
