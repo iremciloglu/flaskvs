@@ -163,7 +163,6 @@ class EmployeeForm(FlaskForm):
     email = StringField("Email:", validators=[DataRequired()])
     reg_date =StringField("Registration Date:")
     branch_name = StringField("Branch Name:")
-    branch_location = StringField("Branch Location:")
     submit = SubmitField("Submit")    
 
 @app.route('/delete_customer/<uid>', methods=["GET", "POST"])
@@ -221,8 +220,14 @@ def employee_edit(uid):
         employee['email'] = request.form['email']
         employee['surname'] = request.form['surname']
         employee['reg_date'] = request.form['reg_date']
-        employee['branch']['name'] = request.form['branch_name']
-        employee['branch']['location'] = request.form['branch_location']
+
+        branchesref= db.collection('Branches')
+        branch_query = branchesref.where("name", "==", request.form['branch_name']).stream()  
+        new_branch = {}
+        for result in branch_query:
+            new_branch = result.to_dict()
+        employee['branch']=new_branch
+    
         try:
 
             employeesref.document(doc.id).update(employee) # Update the employee document in the Employees collection
@@ -232,7 +237,7 @@ def employee_edit(uid):
             flash("Error! Looks like there was a problem...try again!")
             return render_template("employee_edit.html", form=form, employee=employee, uid=uid)
     else:
-        return render_template("employee_edit.html", form=form, employee=employee, uid=uid)#delete ekle
+        return render_template("employee_edit.html", form=form, employee=employee, uid=uid)
 
 if __name__ == "__main__":
     app.run(debug=True)
