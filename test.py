@@ -25,27 +25,32 @@ cert = {
 app.config["FIREBASE_ADMIN_CREDENTIAL"] = credentials.Certificate(cert)
 firebase = FirebaseAdmin(app)
 db = firebase.firestore.client()
-app.secret_key= "secret"
+  
 
-
-@app.route('/')
+@app.route('/') # by default, web page starts with the login page
 def index():
     return render_template("admin_login.html")
 
+# in login screen, email and password inputs are taken. After that below code checks if the given inputs are valid or not
+# by checking from the database
 @app.route('/login', methods=['POST'])
 def login():
     email = request.form['email']
     password = request.form['password']
 
-    users_ref = db.collection('Employees')
+    users_ref = db.collection('Admins')
     query = users_ref.where('email', '==', email).get()
 
     if len(query) == 1:
+        #In this code block, the variable user is being set to the first result in the query list returned by the where method
+        # applied to the users_ref collection, which is filtered by the email entered in the login form.
         user = query[0]
+        #Since query is a collection of Firestore documents returned from the get() method,
+        # it is a list-like object, so query[0] retrieves the first (and in this case, only) document that matches the specified email.
         if user.to_dict()['password'] == password:
-            session["email"]=email  #session mechanism does not work SOLVE !!
+            session["email"]=email
             # user authentication succeeded
-            return render_template("view_branch.html")
+            return render_template("home.html")
         else:
             # user authentication failed
             pass
@@ -54,20 +59,22 @@ def login():
         pass
     return render_template("admin_login.html")
 
-@app.route('/logout')
+
+@app.route('/logout') # after logout operation, web site redirects to the login screen
 def logout():
     session.clear()
-    return redirect(url_for('login'))
-@app.route('/home')
+    return render_template("admin_login.html")
+    
+@app.route('/home',methods=["GET", "POST"])
 def home():
     return render_template("home.html")
 
-########### view list parts
+#
 @app.route('/branch',methods=["GET", "POST"])
 def branch():# this shows all the branches in the db
-    branchesref = db.collection('Branches')
+    branchesref = db.collection('Branches') #our database's "Branches" collection's connection is shown here
     docs = branchesref.stream()
-    headings=['name','location']
+    headings=['name'] # needed parameters
     data=[]
     for doc in docs:
         temp = []
@@ -80,9 +87,9 @@ def branch():# this shows all the branches in the db
 @app.route('/branch_emp/<name>',methods=["GET", "POST"])
 def branch_employee(name):# this shows the employees according to which branch they are located in the db
     employeesref = db.collection('Employees')
-    headings=['name','surname','reg_date','email','branch','uid']
+    headings=['name','surname','reg_date','email','branch','uid'] # needed parameters
     data=[]
-    query = employeesref.where("branch.name","==", name).stream()
+    query = employeesref.where("branch.name","==", name).stream() # since specific branch name is passed to here, we are filtering according to it
     for doc in query:
         temp = []
         for header in headings:
@@ -96,7 +103,7 @@ def branch_employee(name):# this shows the employees according to which branch t
 @app.route('/emp',methods=["GET", "POST"])
 def employee():# this shows all the employees in the db
     employeesref = db.collection('Employees')
-    headings=['name','surname','reg_date','email','branch','uid']
+    headings=['name','surname','reg_date','email','branch','uid'] # needed parameters
     data=[]
     docs = employeesref.stream()
     for doc in docs:
@@ -116,7 +123,7 @@ def employee():# this shows all the employees in the db
 @app.route('/cust',methods=["GET", "POST"])
 def customer():# this shows all the customers in the db
     customersref = db.collection('Customers')
-    headings=['name','surname','priority','email','age','uid']
+    headings=['name','surname','priority','email','age','uid'] # needed parameters
     data=[]
     docs = customersref.stream()
     for doc in docs:
@@ -156,31 +163,30 @@ class EmployeeForm(FlaskForm):
     email = StringField("Email:", validators=[DataRequired()])
     reg_date =StringField("Registration Date:")
     branch_name = StringField("Branch Name:")
-    branch_location = StringField("Branch Location:")
     submit = SubmitField("Submit")    
 
 @app.route('/delete_customer/<uid>', methods=["GET", "POST"])
 def delete_customer(uid):
-    customersref = db.collection('Customers')
-    query = customersref.where("uid", "==", uid).stream()
+    customersref = db.collection('Customers') # db connection with the "Customers" collection
+    query = customersref.where("uid", "==", uid).stream() # filtering according to the passed uid input
     for doc in query:
-        customersref.document(doc.id).delete()    
-    return redirect('http://127.0.0.1:5000/cust')
+        customersref.document(doc.id).delete()   # deleting the customer who has passed uid when found
+    return redirect('/cust')
 
 @app.route('/delete_employee/<uid>', methods=["GET", "POST"])
 def delete_employee(uid):
-    employeesref = db.collection('Employees')
-    query = employeesref.where("uid", "==", uid).stream()
+    employeesref = db.collection('Employees') # db connection with the "Employees" collection
+    query = employeesref.where("uid", "==", uid).stream() # filtering according to the passed uid input
     for doc in query:
-        employeesref.document(doc.id).delete()        
-    return redirect('http://127.0.0.1:5000/emp')
+        employeesref.document(doc.id).delete()      # deleting the employee who has passed uid when found
+    return redirect('/emp')
 
 @app.route('/customer_edit/<uid>', methods=["GET","POST"])
 def customer_edit(uid):
     # Query the Customers collection to get the customer with the specified uid
     customersref = db.collection('Customers')
     form = CustomerForm()
-    query = customersref.where("uid", "==", uid).stream()
+    query = customersref.where("uid", "==", uid).stream() # filtering according to the passed uid input
     for doc in query:
         customer = doc.to_dict()
     if request.method == "POST":
@@ -191,8 +197,7 @@ def customer_edit(uid):
         customer['priority'] = request.form['priority']
         customer['age'] = request.form['age']
         try:
-            # Update the customer document in the Customers collection
-            customersref.document(doc.id).update(customer)
+            customersref.document(doc.id).update(customer) # Update the customer document in the Customers collection
             flash("User Updated Successfully!")
             return redirect("customer_edit.html", uid=uid)
         except:
@@ -206,7 +211,7 @@ def employee_edit(uid):
     # Query the Employees collection to get the employee with the specified uid
     employeesref = db.collection('Employees')
     form = EmployeeForm()
-    query = employeesref.where("uid", "==", uid).stream()
+    query = employeesref.where("uid", "==", uid).stream()  # filtering according to the passed uid input
     for doc in query:
         employee = doc.to_dict()
     if request.method == "POST":
@@ -215,18 +220,24 @@ def employee_edit(uid):
         employee['email'] = request.form['email']
         employee['surname'] = request.form['surname']
         employee['reg_date'] = request.form['reg_date']
-        employee['branch']['name'] = request.form['branch_name']
-        employee['branch']['location'] = request.form['branch_location']
+
+        branchesref= db.collection('Branches')
+        branch_query = branchesref.where("name", "==", request.form['branch_name']).stream()  
+        new_branch = {}
+        for result in branch_query:
+            new_branch = result.to_dict()
+        employee['branch']=new_branch
+    
         try:
-            # Update the employee document in the Employees collection
-            employeesref.document(doc.id).update(employee)
+
+            employeesref.document(doc.id).update(employee) # Update the employee document in the Employees collection
             flash("User Updated Successfully!")
             return redirect("employee_edit.html", uid=uid)
         except:
             flash("Error! Looks like there was a problem...try again!")
             return render_template("employee_edit.html", form=form, employee=employee, uid=uid)
     else:
-        return render_template("employee_edit.html", form=form, employee=employee, uid=uid)#delete ekle
+        return render_template("employee_edit.html", form=form, employee=employee, uid=uid)
 
 if __name__ == "__main__":
     app.run(debug=True)

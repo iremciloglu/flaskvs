@@ -1,30 +1,10 @@
 
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Branch List</title>
-  <link rel="stylesheet" href="../static/view_list.css">
-  </head>
-  <body class="bg">
-
-    <ul>
-      <li style="background-color:rgb(234, 235, 242)"><a href="http://127.0.0.1:5000/home" style="color:#2812b6; font-family:'Times New Roman', Times, serif"><b>METUBank</b></a></li>
-    
-      <li style="float:right"><a href="#">Log Out</a></li>
-      <li style="float:right"><a href="#">Settings</a></li>
-          <li class="dropdown">
-            <a href="javascript:void(0)" class="dropbtn">View Lists</a>
-            <div class="dropdown-content">
-              <a href="http://127.0.0.1:5000/emp">View Employees</a>
-              <a href="http://127.0.0.1:5000/branch">View Branches</a>
-              <a href="http://127.0.0.1:5000/queue">View Queues</a>
-              <a href="http://127.0.0.1:5000/cust">View Customers</a>
-            </div>
-          </li>  
-          <li><a href="#">Simulation</a></li>    
-      </ul>
+{% block header %}
+<title>{% block title %}Branch List{% endblock %}</title>
+  <link rel="stylesheet" href="../static/view_emp.css">
+  {% endblock %}
+  {% extends 'main.html' %}
+   {% block content %}
   <h1>Branch List</h1>
   
 <table>
@@ -42,5 +22,4 @@
   </tr>
   {% endfor %}
   
-</table>
-  </body>
+  {% endblock %}
