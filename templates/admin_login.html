@@ -13,9 +13,9 @@
 <div>
    
     <h1 style="color:#232dc2; text-align: center">Administration System </h1>
-    <form name = "manager_login" method="post" action= "#" onsubmit="">
-    <label for="e_mail">E-mail:</label><br>
-    <input type="text" id="e_mail" name="e_mail">
+    <form name = "manager_login" method="post" action= "{{ url_for('login') }}" onsubmit="">
+    <label for="email">E-mail:</label><br>
+    <input type="text" id="email" name="email">
     <label for="password">Password:</label><br>
     <input type="password" id="password" name="password">
     <p><input type="submit" value="Login" class="button button1"></p>
