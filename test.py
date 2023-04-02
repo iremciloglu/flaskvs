@@ -74,7 +74,7 @@ def home():
 def branch():# this shows all the branches in the db
     branchesref = db.collection('Branches') #our database's "Branches" collection's connection is shown here
     docs = branchesref.stream()
-    headings=['name','location'] # needed parameters
+    headings=['name'] # needed parameters
     data=[]
     for doc in docs:
         temp = []
