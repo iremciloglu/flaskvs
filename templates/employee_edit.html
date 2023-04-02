@@ -4,7 +4,7 @@
   <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Customer Edit</title>
+  <title>Employee Edit</title>
   <link rel="stylesheet" href="../static/view_list.css">
   <link rel="stylesheet" href="../static/edit.css">
   </head>
@@ -26,43 +26,48 @@
           </li>  
           <li><a href="#">Simulation</a></li>    
       </ul>
-  <h1>Customer Info</h1>
+  <h1>Employee Info</h1>
   
   <br/>
 <div class="shadow p-3 mb-5 bg-body rounded">
-  <form action="http://127.0.0.1:5000/customer_edit/{{uid}}" method="POST">
+  <form action="http://127.0.0.1:5000/employee_edit/{{uid}}" method="POST">
       {{ form.hidden_tag() }}
 
       {{ form.name.label(class="form-label") }}
 
-      {{ form.name(class="form-control", value=customer.name) }}
+      {{ form.name(class="form-control", value=employee.name) }}
       <br/>
 
       {{ form.surname.label(class="form-label") }}
 
-      {{ form.surname(class="form-control", value=customer.surname) }}
+      {{ form.surname(class="form-control", value=employee.surname) }}
       <br/>
 
       {{ form.email.label(class="form-label") }}
 
-      {{ form.email(class="form-control", value=customer.email) }}
+      {{ form.email(class="form-control", value=employee.email) }}
       <br/>
       
-      {{ form.age.label(class="form-label") }}
+      {{ form.reg_date.label(class="form-label") }}
 
-      {{ form.age(class="form-control", value=customer.age) }}
+      {{ form.reg_date(class="form-control", value=employee.reg_date) }}
 
       <br/>
       
-      {{ form.priority.label(class="form-label") }}
+      {{ form.branch_name.label(class="form-label") }}
 
-      {{ form.priority(class="form-control", value=customer.priority) }}
+      {{ form.branch_name(class="form-control", value=employee.branch.name) }}
+      <br/>
+      
+      {{ form.branch_location.label(class="form-label") }}
+
+      {{ form.branch_location(class="form-control", value=employee.branch.location) }}
 
       <br/>
 		
       {{ form.submit(class="btn btn-secondary") }}
 
-      <a href="{{ url_for('delete_customer', uid=customer.uid)}}" class="btn btn-danger">Delete</a>
+      <a href="{{ url_for('delete_employee', uid=employee.uid)}}" class="btn btn-danger">Delete</a>
   </form>
 </div>
 <br/><br/><br/>
