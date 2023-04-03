@@ -1,0 +1,31 @@
+
+{% block header %}
+<title>{% block title %}Employee List{% endblock %}</title>
+  <link rel="stylesheet" href="../static/view_emp.css">
+  {% endblock %}
+ {% extends 'main.html' %}
+  {% block content %}
+  <h1>Queue List</h1>
+  
+  <table>
+    <tr>
+      {% for header in headings %}
+      {% if header != 'uid'%}
+      <th>{{header}}</th>
+      {% endif %}
+      {% endfor %}
+    </tr>
+  
+    {% for row in data %}
+    <tr>
+      {% for cell in row %}
+      {% if cell != row[-1]%}
+      <td>{{cell}}</td>
+      {% endif %}
+      {% endfor %}
+      <td><a href="http://127.0.0.1:5000/employee_edit/{{row[-1]}}">Edit</a></td>
+    </tr>
+    {% endfor %}
+    
+  </table>
+  {% endblock %}

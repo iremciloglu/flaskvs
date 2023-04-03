@@ -6,7 +6,6 @@ from wtforms import StringField, SubmitField,DateField
 from wtforms.validators import DataRequired
 import os
 
-
 app = Flask(__name__)
 SECRET_KEY = os.urandom(32)
 app.config['SECRET_KEY'] = SECRET_KEY
@@ -78,8 +77,11 @@ def branch():# this shows all the branches in the db
     data=[]
     for doc in docs:
         temp = []
-        for header in headings:
-            temp.append(doc.to_dict()[header])
+        try:
+            for header in headings:
+                temp.append(doc.to_dict()[header])
+        except KeyError:
+                temp.append('')  # handle missing fields by adding empty string        
         data.append(temp)
 
     return render_template("view_branch.html", data=data, headings=headings)
@@ -93,10 +95,13 @@ def branch_employee(name):# this shows the employees according to which branch t
     for doc in query:
         temp = []
         for header in headings:
-            if header!='branch':
-                temp.append(doc.to_dict()[header])
-            else:
-                temp.append(doc.to_dict()[header]['name'])
+            try:
+                if header!='branch':
+                    temp.append(doc.to_dict()[header])
+                else:
+                    temp.append(doc.to_dict()[header]['name'])
+            except KeyError:
+                temp.append('')  # handle missing fields by adding empty string
         data.append(temp)
     return render_template("view_branch_emp.html", data=data, headings=headings)
 
@@ -137,7 +142,7 @@ def customer():# this shows all the customers in the db
     return render_template("view_customer.html", data=data, headings=headings)
 
 #not ready
-#this will show te queues details and the active customers in the queues
+#this will show the queues details and the active customers in the queues
 @app.route('/queue',methods=["GET", "POST"])
 def queue():
     queuesref = db.collection('Queue')
@@ -149,6 +154,7 @@ def queue():
 
 ########### manage/update parts
 
+#these classes make use of flaskform by allowing us to edit wanted fields
 class CustomerForm(FlaskForm):
     name = StringField("Name:", validators=[DataRequired()])
     surname = StringField("Surname:", validators=[DataRequired()])
