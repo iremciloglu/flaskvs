@@ -1,0 +1,52 @@
+
+{% block header %}
+  <title>Active Ticket Edit</title>
+  <link rel="stylesheet" href="../static/view_list.css">
+  <link rel="stylesheet" href="../static/edit.css">
+  {% endblock %}
+ {% extends 'main.html' %}
+ 
+ {% block content %}
+
+  <h1>Active Ticket Info</h1>
+  
+  <br/>
+    <div class="shadow p-3 mb-5 bg-body rounded">
+    <form action="http://127.0.0.1:5000/queue_cust_edit/{{Queue}}/{{customer_id}}" method="POST">
+        {{ form.hidden_tag() }}
+
+        {{ form.name.label(class="form-label") }}
+
+        {{ form.name(class="form-control", value=active_customer.name) }}
+        <br/>
+
+        {{ form.surname.label(class="form-label") }}
+
+        {{ form.surname(class="form-control", value=active_customer.surname) }}
+        <br/>
+
+        {{ form.priority.label(class="form-label") }}
+
+        {{ form.priority(class="form-control", value=active_customer.priority) }}
+        <br/>
+        
+        {{ form.processType.label(class="form-label") }}
+
+        {{ form.processType(class="form-control", value=active_customer.processType) }}
+
+        <br/>
+        
+        {{ form.total_waited_time.label(class="form-label") }}
+
+        {{ form.total_waited_time(class="form-control", value=active_customer.total_waited_time) }}
+
+        <br/>
+            
+        {{ form.submit(class="btn btn-secondary") }}
+
+        <a href="{{ url_for('delete_queue_customer', Queue=Queue,customer_id=active_customer.customer_id)}}" class="btn btn-danger">Delete</a>
+    </form>
+    </div>
+    <br/><br/><br/>
+
+{% endblock %} 

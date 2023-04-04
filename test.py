@@ -73,13 +73,17 @@ def home():
 def branch():# this shows all the branches in the db
     branchesref = db.collection('Branches') #our database's "Branches" collection's connection is shown here
     docs = branchesref.stream()
-    headings=['name'] # needed parameters
+    headings=['name','Queue'] # needed parameters
     data=[]
     for doc in docs:
         temp = []
         try:
             for header in headings:
-                temp.append(doc.to_dict()[header])
+                if header == 'Queue':#we are keeping the queue as a directory in Branches collection, so we split it to get wanted data
+                    queue_directory=doc.to_dict()[header].split('/')
+                    temp.append(queue_directory[2])
+                else:    
+                    temp.append(doc.to_dict()[header])
         except KeyError:
                 temp.append('')  # handle missing fields by adding empty string        
         data.append(temp)
@@ -124,7 +128,6 @@ def employee():# this shows all the employees in the db
         data.append(temp)
     return render_template("view_emp.html", data=data, headings=headings)
 
-
 @app.route('/cust',methods=["GET", "POST"])
 def customer():# this shows all the customers in the db
     customersref = db.collection('Customers')
@@ -141,16 +144,22 @@ def customer():# this shows all the customers in the db
         data.append(temp)
     return render_template("view_customer.html", data=data, headings=headings)
 
-#not ready
 #this will show the queues details and the active customers in the queues
-@app.route('/queue',methods=["GET", "POST"])
-def queue():
-    queuesref = db.collection('Queue')
-    docs =queuesref.stream()
-    queue_list=[]
-    for doc in docs:
-        queue_list.append('{} : {}'.format(doc.id,doc.to_dict()))
-    return queue_list   
+@app.route('/queue/<Queue>',methods=["GET", "POST"])
+def queue(Queue):#it should show position !!
+    queueref = db.collection('Queue').document(Queue).collection('TicketsInQueue')
+    chosen_queue = queueref.stream()
+    headings=['name','surname','priority','processType','total_waited_time','customer_id'] # needed parameters
+    data=[]
+    for ticket in chosen_queue:
+        temp = []
+        for header in headings:
+            try:
+                temp.append(ticket.to_dict()[header])
+            except KeyError:
+                temp.append('')  # handle missing fields by adding empty string
+        data.append(temp)
+    return render_template("view_queue.html", data=data, headings=headings, Queue=Queue)  
 
 ########### manage/update parts
 
@@ -169,7 +178,15 @@ class EmployeeForm(FlaskForm):
     email = StringField("Email:", validators=[DataRequired()])
     reg_date =StringField("Registration Date:")
     branch_name = StringField("Branch Name:")
-    submit = SubmitField("Submit")    
+    submit = SubmitField("Submit")   
+
+class ActiveCustomerForm(FlaskForm):
+    name = StringField("Name:", validators=[DataRequired()])
+    surname = StringField("Surname:", validators=[DataRequired()])
+    priority = StringField("Priority:", validators=[DataRequired()])
+    processType =StringField("Process Type:")
+    total_waited_time = StringField("Waited Time:")
+    submit = SubmitField("Submit")  
 
 @app.route('/delete_customer/<uid>', methods=["GET", "POST"])
 def delete_customer(uid):
@@ -186,6 +203,15 @@ def delete_employee(uid):
     for doc in query:
         employeesref.document(doc.id).delete()      # deleting the employee who has passed uid when found
     return redirect('/emp')
+
+@app.route('/delete_queue_customer/<Queue>/<customer_id>', methods=["GET", "POST"])
+def delete_queue_customer(Queue,customer_id):
+    queueref = db.collection('Queue').document(Queue).collection('TicketsInQueue')
+    query = queueref.where("customer_id", "==", customer_id).stream()
+    for doc in query:
+        queueref.document(doc.id).delete()      # deleting the employee who has passed uid when found
+    return redirect('/queue/<Queue>')
+
 
 @app.route('/customer_edit/<uid>', methods=["GET","POST"])
 def customer_edit(uid):
@@ -235,7 +261,6 @@ def employee_edit(uid):
         employee['branch']=new_branch
     
         try:
-
             employeesref.document(doc.id).update(employee) # Update the employee document in the Employees collection
             flash("User Updated Successfully!")
             return redirect("employee_edit.html", uid=uid)
@@ -244,6 +269,35 @@ def employee_edit(uid):
             return render_template("employee_edit.html", form=form, employee=employee, uid=uid)
     else:
         return render_template("employee_edit.html", form=form, employee=employee, uid=uid)
+    
+@app.route('/queue_cust_edit/<Queue>/<customer_id>', methods=["GET","POST"])
+def queue_cust_edit(Queue,customer_id):
+    queueref = db.collection('Queue').document(Queue).collection('TicketsInQueue')
+    query = queueref.where("customer_id", "==", customer_id).stream()
+    form = ActiveCustomerForm()
+    active_customer={}
+    for doc in query:
+        active_customer = doc.to_dict()
+        #active_customer['id'] = doc.id
+
+    if request.method == "POST":
+        # Update the customer fields with the form data
+        active_customer['name'] = request.form['name']
+        active_customer['priority'] = request.form['priority']
+        active_customer['surname'] = request.form['surname']
+        active_customer['processType'] = request.form['processType']
+        active_customer['total_waited_time'] = request.form['total_waited_time']
+
+        try:
+            queueref.document(doc.id).update(active_customer) # Update the customer document in the Queue collection
+            flash("User Updated Successfully!")
+            return redirect("queue_cust_edit.html", Queue=Queue, customer_id=customer_id)
+        except:
+            flash("Error! Looks like there was a problem...try again!")
+            return render_template("queue_cust_edit.html", form=form, active_customer=active_customer, Queue=Queue, customer_id=customer_id)
+    else:
+        return render_template("queue_cust_edit.html", form=form, active_customer=active_customer, Queue=Queue, customer_id=customer_id)    
+    
 
 if __name__ == "__main__":
     app.run(debug=True)

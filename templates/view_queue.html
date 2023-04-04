@@ -1,16 +1,16 @@
 
 {% block header %}
-<title>{% block title %}Employee List{% endblock %}</title>
-  <link rel="stylesheet" href="../static/view_emp.css">
+<title>{% block title %}Queue Details{% endblock %}</title>
+  <link rel="stylesheet" href="../static/view_list.css">
   {% endblock %}
  {% extends 'main.html' %}
   {% block content %}
-  <h1>Queue List</h1>
+  <h1>Customers in the Queue:</h1>
   
   <table>
     <tr>
       {% for header in headings %}
-      {% if header != 'uid'%}
+      {% if header != 'customer_id' %}
       <th>{{header}}</th>
       {% endif %}
       {% endfor %}
@@ -20,10 +20,10 @@
     <tr>
       {% for cell in row %}
       {% if cell != row[-1]%}
-      <td>{{cell}}</td>
-      {% endif %}
+    <td>{{cell}}</td>
+    {% endif %}
       {% endfor %}
-      <td><a href="http://127.0.0.1:5000/employee_edit/{{row[-1]}}">Edit</a></td>
+      <td><a href="http://127.0.0.1:5000/queue_cust_edit/{{Queue}}/{{row[-1]}}">Edit</a></td>
     </tr>
     {% endfor %}
     
