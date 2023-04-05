@@ -1,0 +1,46 @@
+
+{% block header %}
+  <title>New Employee Adding</title>
+  <link rel="stylesheet" href="../static/view_list.css">
+  <link rel="stylesheet" href="../static/edit.css">
+  {% endblock %}
+ {% extends 'main.html' %}
+ 
+ {% block content %}
+
+  <h1>New Employee Adding</h1>
+  
+  <br/>
+<div class="shadow p-3 mb-5 bg-body rounded">
+  <form action="http://127.0.0.1:5000/add_employee/{{name}}" method="POST">
+      {{ form.hidden_tag() }}
+
+      {{ form.name.label(class="form-label") }}
+
+      {{ form.name(class="form-control") }}
+      <br/>
+
+      {{ form.surname.label(class="form-label") }}
+
+      {{ form.surname(class="form-control") }}
+      <br/>
+
+      {{ form.email.label(class="form-label") }}
+
+      {{ form.email(class="form-control") }}
+      <br/>
+      
+      {{ form.reg_date.label(class="form-label") }}
+
+      {{ form.reg_date(class="form-control") }}
+
+      <br/>
+      
+     
+		
+      {{ form.submit(class="btn btn-secondary") }}
+  </form>
+</div>
+<br/><br/><br/>
+
+{% endblock %} 

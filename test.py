@@ -1,10 +1,11 @@
 from flask import *
-from firebase_admin import credentials, firestore
+from firebase_admin import credentials, auth
 from flask_firebase_admin import FirebaseAdmin
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField,DateField
+from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 import os
+import pyrebase
 
 app = Flask(__name__)
 SECRET_KEY = os.urandom(32)
@@ -58,7 +59,6 @@ def login():
         pass
     return render_template("admin_login.html")
 
-
 @app.route('/logout') # after logout operation, web site redirects to the login screen
 def logout():
     session.clear()
@@ -68,7 +68,7 @@ def logout():
 def home():
     return render_template("home.html")
 
-#
+####### view parts 
 @app.route('/branch',methods=["GET", "POST"])
 def branch():# this shows all the branches in the db
     branchesref = db.collection('Branches') #our database's "Branches" collection's connection is shown here
@@ -212,7 +212,6 @@ def delete_queue_customer(Queue,customer_id):
         queueref.document(doc.id).delete()      # deleting the employee who has passed uid when found
     return redirect('/queue/<Queue>')
 
-
 @app.route('/customer_edit/<uid>', methods=["GET","POST"])
 def customer_edit(uid):
     # Query the Customers collection to get the customer with the specified uid
@@ -278,7 +277,6 @@ def queue_cust_edit(Queue,customer_id):
     active_customer={}
     for doc in query:
         active_customer = doc.to_dict()
-        #active_customer['id'] = doc.id
 
     if request.method == "POST":
         # Update the customer fields with the form data
@@ -297,7 +295,47 @@ def queue_cust_edit(Queue,customer_id):
             return render_template("queue_cust_edit.html", form=form, active_customer=active_customer, Queue=Queue, customer_id=customer_id)
     else:
         return render_template("queue_cust_edit.html", form=form, active_customer=active_customer, Queue=Queue, customer_id=customer_id)    
-    
+
+@app.route("/add_employee/<name>", methods = ["POST", "GET"])
+def add_employee(name):#not ready
+    form=EmployeeForm()
+    employee={}
+    if request.method == "POST":#Only listen to POST
+        # Update the employee fields with the form data
+        employee['name'] = request.form['name']
+        employee['email'] = request.form['email']
+        employee['surname'] = request.form['surname']
+        employee['reg_date'] = request.form['reg_date']
+        #employee['password'] = request.form['password']#password??
+
+        try:
+            #Try creating the user account using the provided data
+            auth.create_user_with_email_and_password(employee['email'], employee['password'])
+            
+            #Append data to the firebase realtime database
+            uid="NgSlzpwN6BYqiygO2PyFd4ZgTemp"#temp
+            employeesref = db.collection('Employees')
+            employeesref.document(uid).set(employee)
+            #Go to employee list page
+            return redirect(url_for('branch_employee'))
+        except:
+            #If there is any error, redirect to branch list page
+            return redirect(url_for('branch'))
+
+    else:
+        return render_template("add_employee.html",name=name,form=form)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+##### to do #####
+#log out kitle
+#css queue cust editte gözükmüyor, düzelt
+#formlarda değişmeyecek kısımları kitle
+#add employee i tamamla
+#login i autha bağlamayı dene
+#UI improvements
+#dashboarda başla
+#total waited time gözükmüyor bi sor
+#queue cust editte priorityi sadece o queue için geçici ayarlıyoruz bence ok ama yine de sor
