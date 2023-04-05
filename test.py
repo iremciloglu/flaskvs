@@ -2,10 +2,10 @@ from flask import *
 from firebase_admin import credentials, auth
 from flask_firebase_admin import FirebaseAdmin
 from flask_wtf import FlaskForm
+from flask_login import login_required, LoginManager,login_user,logout_user
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 import os
-import pyrebase
 
 app = Flask(__name__)
 SECRET_KEY = os.urandom(32)
@@ -25,7 +25,14 @@ cert = {
 app.config["FIREBASE_ADMIN_CREDENTIAL"] = credentials.Certificate(cert)
 firebase = FirebaseAdmin(app)
 db = firebase.firestore.client()
-  
+
+# Flask_Login Stuff
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+@login_manager.user_loader
+def load_user():
+	return db.collection('Admins').document('hMhBXy4cuNT7mG6VRR16').get()
 
 @app.route('/') # by default, web page starts with the login page
 def index():
@@ -33,7 +40,7 @@ def index():
 
 # in login screen, email and password inputs are taken. After that below code checks if the given inputs are valid or not
 # by checking from the database
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     email = request.form['email']
     password = request.form['password']
@@ -50,7 +57,7 @@ def login():
         if user.to_dict()['password'] == password:
             session["email"]=email
             # user authentication succeeded
-            return render_template("home.html")
+            return redirect("/home")
         else:
             # user authentication failed
             pass
@@ -60,9 +67,10 @@ def login():
     return render_template("admin_login.html")
 
 @app.route('/logout') # after logout operation, web site redirects to the login screen
+#@login_required
 def logout():
     session.clear()
-    return render_template("admin_login.html")
+    return redirect("/admin_login")
     
 @app.route('/home',methods=["GET", "POST"])
 def home():
@@ -194,6 +202,7 @@ def delete_customer(uid):
     query = customersref.where("uid", "==", uid).stream() # filtering according to the passed uid input
     for doc in query:
         customersref.document(doc.id).delete()   # deleting the customer who has passed uid when found
+    auth.delete_user(uid)   #deleting from auth    
     return redirect('/cust')
 
 @app.route('/delete_employee/<uid>', methods=["GET", "POST"])
@@ -202,6 +211,7 @@ def delete_employee(uid):
     query = employeesref.where("uid", "==", uid).stream() # filtering according to the passed uid input
     for doc in query:
         employeesref.document(doc.id).delete()      # deleting the employee who has passed uid when found
+    auth.delete_user(uid)   #deleting from auth
     return redirect('/emp')
 
 @app.route('/delete_queue_customer/<Queue>/<customer_id>', methods=["GET", "POST"])
@@ -297,7 +307,7 @@ def queue_cust_edit(Queue,customer_id):
         return render_template("queue_cust_edit.html", form=form, active_customer=active_customer, Queue=Queue, customer_id=customer_id)    
 
 @app.route("/add_employee/<name>", methods = ["POST", "GET"])
-def add_employee(name):#not ready
+def add_employee(name):
     form=EmployeeForm()
     employee={}
     if request.method == "POST":#Only listen to POST
@@ -306,16 +316,22 @@ def add_employee(name):#not ready
         employee['email'] = request.form['email']
         employee['surname'] = request.form['surname']
         employee['reg_date'] = request.form['reg_date']
-        #employee['password'] = request.form['password']#password??
+        employee['password'] = '123456'# password? fix
+
+        branchesref= db.collection('Branches')
+        branch_query = branchesref.where("name", "==", name).stream()  
+        new_branch = {}
+        for result in branch_query:
+            new_branch = result.to_dict()
+        employee['branch']=new_branch
 
         try:
             #Try creating the user account using the provided data
-            auth.create_user_with_email_and_password(employee['email'], employee['password'])
-            
+            auth_emp= auth.create_user(email=employee['email'], password=employee['password'])
+            employee['uid']=auth_emp.uid
             #Append data to the firebase realtime database
-            uid="NgSlzpwN6BYqiygO2PyFd4ZgTemp"#temp
-            employeesref = db.collection('Employees')
-            employeesref.document(uid).set(employee)
+            newemployeesref = db.collection('Employees')
+            newemployeesref.document().set(employee)
             #Go to employee list page
             return redirect(url_for('branch_employee'))
         except:
@@ -330,12 +346,12 @@ if __name__ == "__main__":
     app.run(debug=True)
 
 ##### to do #####
-#log out kitle
+#log out kitle -flask_login deki @login_required eklemeye çalış
 #css queue cust editte gözükmüyor, düzelt
 #formlarda değişmeyecek kısımları kitle
-#add employee i tamamla
-#login i autha bağlamayı dene
+#login i autha bağlamayı dene -flask_loginle olabilir
 #UI improvements
 #dashboarda başla
 #total waited time gözükmüyor bi sor
 #queue cust editte priorityi sadece o queue için geçici ayarlıyoruz bence ok ama yine de sor
+#admin customer eklesin mi?
