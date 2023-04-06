@@ -5,7 +5,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 import os
-import pyrebase
+#import pyrebase
 
 app = Flask(__name__)
 SECRET_KEY = os.urandom(32)
@@ -26,17 +26,16 @@ app.config["FIREBASE_ADMIN_CREDENTIAL"] = credentials.Certificate(cert)
 firebase = FirebaseAdmin(app)
 db = firebase.firestore.client()
 
-firebaseConfig = {
-    "apiKey": "AIzaSyBYhmD6RLpy6M3sMxp1CGGPG4Q58mdqotc",
-    "authDomain": "firestore491test.firebaseapp.com",
-    "projectId": "firestore491test",
-    "storageBucket": "firestore491test.appspot.com",
-    "messagingSenderId": "114757450538",
-    "appId": "1:114757450538:web:7a1667f419d17b84e87c53",
-    "measurementId": "G-8YB6KP4E2T",
-    "databaseURL": ''
-}
-pb = pyrebase.initialize_app(firebaseConfig)
+#firebaseConfig = {
+#"apiKey": "AIzaSyBYhmD6RLpy6M3sMxp1CGGPG4Q58mdqotc",
+   # "authDomain": "firestore491test.firebaseapp.com",
+   # "projectId": "firestore491test",
+   # "storageBucket": "firestore491test.appspot.com",
+   # "messagingSenderId": "114757450538",
+   # "appId": "1:114757450538:web:7a1667f419d17b84e87c53",
+   # "measurementId": "G-8YB6KP4E2T",
+   # "databaseURL": ''}
+#pb = pyrebase.initialize_app(firebaseConfig)
 
 @app.route('/') # by default, web page starts with the login page
 def index():
@@ -50,7 +49,7 @@ def login():
     password = request.form['password']
     #  # Authenticate the user's email and password
     try:    
-        pb.auth().sign_in_with_email_and_password(email,password)
+        #pb.auth().sign_in_with_email_and_password(email,password)
         return redirect("/home")
     except:
         # user authentication failed
@@ -58,7 +57,7 @@ def login():
     return render_template("admin_login.html")
 
 @app.route('/logout') # after logout operation, web site redirects to the login screen
-@firebase.jwt_required
+#@firebase.jwt_required
 def logout():
     session.clear()
     return redirect("/admin_login")
