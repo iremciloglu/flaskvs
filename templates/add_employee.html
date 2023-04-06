@@ -1,6 +1,6 @@
 
 {% block header %}
-  <title>Employee Edit</title>
+  <title>New Employee Adding</title>
   <link rel="stylesheet" href="../static/view_list.css">
   <link rel="stylesheet" href="../static/edit.css">
   {% endblock %}
@@ -8,43 +8,37 @@
  
  {% block content %}
 
-  <h1>Employee Info</h1>
+  <h1>New Employee Adding</h1>
   
   <br/>
 <div class="shadow p-3 mb-5 bg-body rounded">
-  <form action="http://127.0.0.1:5000/employee_edit/{{uid}}" method="POST">
+  <form action="http://127.0.0.1:5000/add_employee/{{name}}" method="POST">
       {{ form.hidden_tag() }}
 
       {{ form.name.label(class="form-label") }}
 
-      {{ form.name(class="form-control", value=employee.name) }}
+      {{ form.name(class="form-control") }}
       <br/>
 
       {{ form.surname.label(class="form-label") }}
 
-      {{ form.surname(class="form-control", value=employee.surname) }}
+      {{ form.surname(class="form-control") }}
       <br/>
 
       {{ form.email.label(class="form-label") }}
 
-      {{ form.email(class="form-control", value=employee.email) }}
+      {{ form.email(class="form-control") }}
       <br/>
       
       {{ form.reg_date.label(class="form-label") }}
 
-      {{ form.reg_date(class="form-control", value=employee.reg_date) }}
+      {{ form.reg_date(class="form-control") }}
 
       <br/>
       
-      {{ form.branch_name.label(class="form-label") }}
-
-      {{ form.branch_name(class="form-control", value=employee.branch.name) }}
-
-      <br/>
+     
 		
       {{ form.submit(class="btn btn-secondary") }}
-
-      <a href="{{ url_for('delete_employee', uid=employee.uid)}}" class="btn btn-danger">Delete</a>
   </form>
 </div>
 <br/><br/><br/>

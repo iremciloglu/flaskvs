@@ -1,8 +1,9 @@
 from flask import *
-from firebase_admin import credentials, firestore
+from firebase_admin import credentials, auth
 from flask_firebase_admin import FirebaseAdmin
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField,DateField
+from flask_login import login_required, LoginManager,login_user,logout_user
+from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 import os
 
@@ -24,7 +25,14 @@ cert = {
 app.config["FIREBASE_ADMIN_CREDENTIAL"] = credentials.Certificate(cert)
 firebase = FirebaseAdmin(app)
 db = firebase.firestore.client()
-  
+
+# Flask_Login Stuff
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+@login_manager.user_loader
+def load_user():
+	return db.collection('Admins').document('hMhBXy4cuNT7mG6VRR16').get()
 
 @app.route('/') # by default, web page starts with the login page
 def index():
@@ -32,7 +40,7 @@ def index():
 
 # in login screen, email and password inputs are taken. After that below code checks if the given inputs are valid or not
 # by checking from the database
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     email = request.form['email']
     password = request.form['password']
@@ -49,7 +57,7 @@ def login():
         if user.to_dict()['password'] == password:
             session["email"]=email
             # user authentication succeeded
-            return render_template("home.html")
+            return redirect("/home")
         else:
             # user authentication failed
             pass
@@ -58,28 +66,32 @@ def login():
         pass
     return render_template("admin_login.html")
 
-
 @app.route('/logout') # after logout operation, web site redirects to the login screen
+#@login_required
 def logout():
     session.clear()
-    return render_template("admin_login.html")
+    return redirect("/admin_login")
     
 @app.route('/home',methods=["GET", "POST"])
 def home():
     return render_template("home.html")
 
-#
+####### view parts 
 @app.route('/branch',methods=["GET", "POST"])
 def branch():# this shows all the branches in the db
     branchesref = db.collection('Branches') #our database's "Branches" collection's connection is shown here
     docs = branchesref.stream()
-    headings=['name'] # needed parameters
+    headings=['name','Queue'] # needed parameters
     data=[]
     for doc in docs:
         temp = []
         try:
             for header in headings:
-                temp.append(doc.to_dict()[header])
+                if header == 'Queue':#we are keeping the queue as a directory in Branches collection, so we split it to get wanted data
+                    queue_directory=doc.to_dict()[header].split('/')
+                    temp.append(queue_directory[2])
+                else:    
+                    temp.append(doc.to_dict()[header])
         except KeyError:
                 temp.append('')  # handle missing fields by adding empty string        
         data.append(temp)
@@ -124,7 +136,6 @@ def employee():# this shows all the employees in the db
         data.append(temp)
     return render_template("view_emp.html", data=data, headings=headings)
 
-
 @app.route('/cust',methods=["GET", "POST"])
 def customer():# this shows all the customers in the db
     customersref = db.collection('Customers')
@@ -141,16 +152,22 @@ def customer():# this shows all the customers in the db
         data.append(temp)
     return render_template("view_customer.html", data=data, headings=headings)
 
-#not ready
 #this will show the queues details and the active customers in the queues
-@app.route('/queue',methods=["GET", "POST"])
-def queue():
-    queuesref = db.collection('Queue')
-    docs =queuesref.stream()
-    queue_list=[]
-    for doc in docs:
-        queue_list.append('{} : {}'.format(doc.id,doc.to_dict()))
-    return queue_list   
+@app.route('/queue/<Queue>',methods=["GET", "POST"])
+def queue(Queue):#it should show position !!
+    queueref = db.collection('Queue').document(Queue).collection('TicketsInQueue')
+    chosen_queue = queueref.stream()
+    headings=['name','surname','priority','processType','total_waited_time','customer_id'] # needed parameters
+    data=[]
+    for ticket in chosen_queue:
+        temp = []
+        for header in headings:
+            try:
+                temp.append(ticket.to_dict()[header])
+            except KeyError:
+                temp.append('')  # handle missing fields by adding empty string
+        data.append(temp)
+    return render_template("view_queue.html", data=data, headings=headings, Queue=Queue)  
 
 ########### manage/update parts
 
@@ -169,7 +186,15 @@ class EmployeeForm(FlaskForm):
     email = StringField("Email:", validators=[DataRequired()])
     reg_date =StringField("Registration Date:")
     branch_name = StringField("Branch Name:")
-    submit = SubmitField("Submit")    
+    submit = SubmitField("Submit")   
+
+class ActiveCustomerForm(FlaskForm):
+    name = StringField("Name:", validators=[DataRequired()])
+    surname = StringField("Surname:", validators=[DataRequired()])
+    priority = StringField("Priority:", validators=[DataRequired()])
+    processType =StringField("Process Type:")
+    total_waited_time = StringField("Waited Time:")
+    submit = SubmitField("Submit")  
 
 @app.route('/delete_customer/<uid>', methods=["GET", "POST"])
 def delete_customer(uid):
@@ -177,6 +202,7 @@ def delete_customer(uid):
     query = customersref.where("uid", "==", uid).stream() # filtering according to the passed uid input
     for doc in query:
         customersref.document(doc.id).delete()   # deleting the customer who has passed uid when found
+    auth.delete_user(uid)   #deleting from auth    
     return redirect('/cust')
 
 @app.route('/delete_employee/<uid>', methods=["GET", "POST"])
@@ -185,7 +211,16 @@ def delete_employee(uid):
     query = employeesref.where("uid", "==", uid).stream() # filtering according to the passed uid input
     for doc in query:
         employeesref.document(doc.id).delete()      # deleting the employee who has passed uid when found
+    auth.delete_user(uid)   #deleting from auth
     return redirect('/emp')
+
+@app.route('/delete_queue_customer/<Queue>/<customer_id>', methods=["GET", "POST"])
+def delete_queue_customer(Queue,customer_id):
+    queueref = db.collection('Queue').document(Queue).collection('TicketsInQueue')
+    query = queueref.where("customer_id", "==", customer_id).stream()
+    for doc in query:
+        queueref.document(doc.id).delete()      # deleting the employee who has passed uid when found
+    return redirect('/queue/<Queue>')
 
 @app.route('/customer_edit/<uid>', methods=["GET","POST"])
 def customer_edit(uid):
@@ -235,7 +270,6 @@ def employee_edit(uid):
         employee['branch']=new_branch
     
         try:
-
             employeesref.document(doc.id).update(employee) # Update the employee document in the Employees collection
             flash("User Updated Successfully!")
             return redirect("employee_edit.html", uid=uid)
@@ -244,6 +278,80 @@ def employee_edit(uid):
             return render_template("employee_edit.html", form=form, employee=employee, uid=uid)
     else:
         return render_template("employee_edit.html", form=form, employee=employee, uid=uid)
+    
+@app.route('/queue_cust_edit/<Queue>/<customer_id>', methods=["GET","POST"])
+def queue_cust_edit(Queue,customer_id):
+    queueref = db.collection('Queue').document(Queue).collection('TicketsInQueue')
+    query = queueref.where("customer_id", "==", customer_id).stream()
+    form = ActiveCustomerForm()
+    active_customer={}
+    for doc in query:
+        active_customer = doc.to_dict()
+
+    if request.method == "POST":
+        # Update the customer fields with the form data
+        active_customer['name'] = request.form['name']
+        active_customer['priority'] = request.form['priority']
+        active_customer['surname'] = request.form['surname']
+        active_customer['processType'] = request.form['processType']
+        active_customer['total_waited_time'] = request.form['total_waited_time']
+
+        try:
+            queueref.document(doc.id).update(active_customer) # Update the customer document in the Queue collection
+            flash("User Updated Successfully!")
+            return redirect("queue_cust_edit.html", Queue=Queue, customer_id=customer_id)
+        except:
+            flash("Error! Looks like there was a problem...try again!")
+            return render_template("queue_cust_edit.html", form=form, active_customer=active_customer, Queue=Queue, customer_id=customer_id)
+    else:
+        return render_template("queue_cust_edit.html", form=form, active_customer=active_customer, Queue=Queue, customer_id=customer_id)    
+
+@app.route("/add_employee/<name>", methods = ["POST", "GET"])
+def add_employee(name):
+    form=EmployeeForm()
+    employee={}
+    if request.method == "POST":#Only listen to POST
+        # Update the employee fields with the form data
+        employee['name'] = request.form['name']
+        employee['email'] = request.form['email']
+        employee['surname'] = request.form['surname']
+        employee['reg_date'] = request.form['reg_date']
+        employee['password'] = '123456'# password? fix
+
+        branchesref= db.collection('Branches')
+        branch_query = branchesref.where("name", "==", name).stream()  
+        new_branch = {}
+        for result in branch_query:
+            new_branch = result.to_dict()
+        employee['branch']=new_branch
+
+        try:
+            #Try creating the user account using the provided data
+            auth_emp= auth.create_user(email=employee['email'], password=employee['password'])
+            employee['uid']=auth_emp.uid
+            #Append data to the firebase realtime database
+            newemployeesref = db.collection('Employees')
+            newemployeesref.document().set(employee)
+            #Go to employee list page
+            return redirect(url_for('branch_employee'))
+        except:
+            #If there is any error, redirect to branch list page
+            return redirect(url_for('branch'))
+
+    else:
+        return render_template("add_employee.html",name=name,form=form)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+##### to do #####
+#log out kitle -flask_login deki @login_required eklemeye çalış
+#css queue cust editte gözükmüyor, düzelt
+#formlarda değişmeyecek kısımları kitle
+#login i autha bağlamayı dene -flask_loginle olabilir
+#UI improvements
+#dashboarda başla
+#total waited time gözükmüyor bi sor
+#queue cust editte priorityi sadece o queue için geçici ayarlıyoruz bence ok ama yine de sor
+#admin customer eklesin mi?
