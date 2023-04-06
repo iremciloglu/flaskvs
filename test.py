@@ -2,10 +2,10 @@ from flask import *
 from firebase_admin import credentials, auth
 from flask_firebase_admin import FirebaseAdmin
 from flask_wtf import FlaskForm
-from flask_login import login_required, LoginManager,login_user,logout_user
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 import os
+import pyrebase
 
 app = Flask(__name__)
 SECRET_KEY = os.urandom(32)
@@ -26,13 +26,17 @@ app.config["FIREBASE_ADMIN_CREDENTIAL"] = credentials.Certificate(cert)
 firebase = FirebaseAdmin(app)
 db = firebase.firestore.client()
 
-# Flask_Login Stuff
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
-@login_manager.user_loader
-def load_user():
-	return db.collection('Admins').document('hMhBXy4cuNT7mG6VRR16').get()
+firebaseConfig = {
+    "apiKey": "AIzaSyBYhmD6RLpy6M3sMxp1CGGPG4Q58mdqotc",
+    "authDomain": "firestore491test.firebaseapp.com",
+    "projectId": "firestore491test",
+    "storageBucket": "firestore491test.appspot.com",
+    "messagingSenderId": "114757450538",
+    "appId": "1:114757450538:web:7a1667f419d17b84e87c53",
+    "measurementId": "G-8YB6KP4E2T",
+    "databaseURL": ''
+}
+pb = pyrebase.initialize_app(firebaseConfig)
 
 @app.route('/') # by default, web page starts with the login page
 def index():
@@ -44,30 +48,17 @@ def index():
 def login():
     email = request.form['email']
     password = request.form['password']
-
-    users_ref = db.collection('Admins')
-    query = users_ref.where('email', '==', email).get()
-
-    if len(query) == 1:
-        #In this code block, the variable user is being set to the first result in the query list returned by the where method
-        # applied to the users_ref collection, which is filtered by the email entered in the login form.
-        user = query[0]
-        #Since query is a collection of Firestore documents returned from the get() method,
-        # it is a list-like object, so query[0] retrieves the first (and in this case, only) document that matches the specified email.
-        if user.to_dict()['password'] == password:
-            session["email"]=email
-            # user authentication succeeded
-            return redirect("/home")
-        else:
-            # user authentication failed
-            pass
-    else:
+    #  # Authenticate the user's email and password
+    try:    
+        pb.auth().sign_in_with_email_and_password(email,password)
+        return redirect("/home")
+    except:
         # user authentication failed
         pass
     return render_template("admin_login.html")
 
 @app.route('/logout') # after logout operation, web site redirects to the login screen
-#@login_required
+@firebase.jwt_required
 def logout():
     session.clear()
     return redirect("/admin_login")
@@ -346,10 +337,11 @@ if __name__ == "__main__":
     app.run(debug=True)
 
 ##### to do #####
-#log out kitle -flask_login deki @login_required eklemeye çalış
+#log out kitle -bişe ekledim ama login autha bağlı olmadığından deneyemedim
 #css queue cust editte gözükmüyor, düzelt
 #formlarda değişmeyecek kısımları kitle
-#login i autha bağlamayı dene -flask_loginle olabilir
+#add employee sign in yapamıyor
+#login i autha bağlamayı dene -firebase_admin.auth olmadı password doğrulamıyor, pyrebase i deniyorum ama setup sıkıntı var sanırım
 #UI improvements
 #dashboarda başla
 #total waited time gözükmüyor bi sor
