@@ -59,14 +59,32 @@ li.dropdown {
   display: block;
 }
 
-table, th, td {
-  border:1px solid black;
+table {
+  font-family: Arial, Helvetica, sans-serif;
+  border-collapse: collapse;
+  width: 90%;
 }
 
+table td, table th {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+table tr:nth-child(even){background-color: #f2f2f2;}
+table tr:nth-child(odd){background-color: #edeaea;}
+table tr:hover {background-color: #ddd;}
+
+table th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #434cc8;
+  color: white;
+}
 .button {
   background-color: #232dc2;
   border: none;
-  color: white;
+  color: rgb(234, 235, 242);
   padding: 15px 32px;
   text-align: center;
   text-decoration: none;
@@ -75,4 +93,25 @@ table, th, td {
   margin: 5px 5px;
   cursor: pointer;
   border-radius: 20%;
+}
+.button2 {
+  background-color: #434cc8;
+  border:thin;
+  color: rgb(234, 235, 242);
+  padding: 10px 10px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 12px;
+  margin: 5px 5px;
+  cursor: pointer;
+  border-radius: 10%;
+}
+.btn {
+  float:left;
+  margin: 12px 16px;
+  font-size: 16px;
+}
+.btn:hover {
+  background-color: #ddd;
 }

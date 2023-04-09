@@ -6,7 +6,7 @@
    {% block content %}
   <h1>Branch List</h1>
   
-<table>
+<table style="width: 40%;">
   <tr>
     {% for header in headings %}
     {% if header != 'Queue'%}
@@ -21,9 +21,12 @@
     <td>{{cell}}</td>
     {% endif %}
       {% endfor %}
-    <td><a href="http://127.0.0.1:5000/branch_emp/{{row[0]}}">Employee List</a></td>
-    <td><a href="http://127.0.0.1:5000/queue/{{row[-1]}}">Queue Details</a></td>
-    <td><a href="http://127.0.0.1:5000/add_employee/{{row[0]}}">Add New Employee</a></td>
+    <td style=" background-color:rgba(171, 172, 177, 0.296)">
+      <a  class="button2" href="http://127.0.0.1:5000/branch_emp/{{row[0]}}" style="background-color: #434cc8;">Employee List</a></td>
+    <td style=" background-color:rgba(171, 172, 177, 0.296)">
+      <a  class="button2" href="http://127.0.0.1:5000/queue/{{row[-1]}}"style="background-color: #434cc8;">Queue Details</a></td>
+    <td style=" background-color:rgba(171, 172, 177, 0.296)">
+        <a  class="button2" href="http://127.0.0.1:5000/add_employee/{{row[0]}}"style="background-color: #434cc8;">Add New Employee</a></td>    
   </tr>
   {% endfor %}
   

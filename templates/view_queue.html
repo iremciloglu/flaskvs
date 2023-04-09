@@ -23,7 +23,8 @@
     <td>{{cell}}</td>
     {% endif %}
       {% endfor %}
-      <td><a href="http://127.0.0.1:5000/queue_cust_edit/{{Queue}}/{{row[-1]}}">Edit</a></td>
+      <td style="padding:0px; background-color:rgba(171, 172, 177, 0.296);width:15px"><button class="btn" style="margin: 0px;">
+        <a href="http://127.0.0.1:5000/queue_cust_edit/{{Queue}}/{{row[-1]}}"><i class="fa fa-edit"></i></a></td>
     </tr>
     {% endfor %}
     

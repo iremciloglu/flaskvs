@@ -453,4 +453,3 @@ if __name__ == "__main__":
 #total waited time gözükmüyor bi sor
 #queue cust editte priorityi sadece o queue için geçici ayarlıyoruz bence ok ama yine de sor
 #error check ekle:aynı email eklenemez error ver, 
-#simulation için loop dene bi ara
