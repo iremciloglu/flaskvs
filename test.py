@@ -2,10 +2,13 @@ from flask import *
 from firebase_admin import credentials, auth
 from flask_firebase_admin import FirebaseAdmin
 from flask_wtf import FlaskForm
+from flask_login import login_required, LoginManager,login_user,logout_user
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 import os
-#import pyrebase
+import base64
+import bcrypt
+from datetime import date, datetime
 
 app = Flask(__name__)
 SECRET_KEY = os.urandom(32)
@@ -26,16 +29,13 @@ app.config["FIREBASE_ADMIN_CREDENTIAL"] = credentials.Certificate(cert)
 firebase = FirebaseAdmin(app)
 db = firebase.firestore.client()
 
-#firebaseConfig = {
-#"apiKey": "AIzaSyBYhmD6RLpy6M3sMxp1CGGPG4Q58mdqotc",
-   # "authDomain": "firestore491test.firebaseapp.com",
-   # "projectId": "firestore491test",
-   # "storageBucket": "firestore491test.appspot.com",
-   # "messagingSenderId": "114757450538",
-   # "appId": "1:114757450538:web:7a1667f419d17b84e87c53",
-   # "measurementId": "G-8YB6KP4E2T",
-   # "databaseURL": ''}
-#pb = pyrebase.initialize_app(firebaseConfig)
+# Flask_Login Stuff
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+@login_manager.user_loader
+def load_user():
+	return db.collection('Admins').document('hMhBXy4cuNT7mG6VRR16').get()
 
 @app.route('/') # by default, web page starts with the login page
 def index():
@@ -47,20 +47,33 @@ def index():
 def login():
     email = request.form['email']
     password = request.form['password']
-    #  # Authenticate the user's email and password
-    try:    
-        #pb.auth().sign_in_with_email_and_password(email,password)
-        return redirect("/home")
-    except:
+
+    users_ref = db.collection('Admins')
+    query = users_ref.where('email', '==', email).get()
+
+    if len(query) == 1:
+        #In this code block, the variable user is being set to the first result in the query list returned by the where method
+        # applied to the users_ref collection, which is filtered by the email entered in the login form.
+        user = query[0]
+        #Since query is a collection of Firestore documents returned from the get() method,
+        # it is a list-like object, so query[0] retrieves the first (and in this case, only) document that matches the specified email.
+        if user.to_dict()['password'] == password:
+            session["email"]=email
+            # user authentication succeeded
+            return redirect("/home")
+        else:
+            # user authentication failed
+            pass
+    else:
         # user authentication failed
         pass
     return render_template("admin_login.html")
 
 @app.route('/logout') # after logout operation, web site redirects to the login screen
-#@firebase.jwt_required
+#@login_required
 def logout():
     session.clear()
-    return redirect("/admin_login")
+    return redirect("/")
     
 @app.route('/home',methods=["GET", "POST"])
 def home():
@@ -166,16 +179,16 @@ class CustomerForm(FlaskForm):
     name = StringField("Name:", validators=[DataRequired()])
     surname = StringField("Surname:", validators=[DataRequired()])
     email = StringField("Email:", validators=[DataRequired()])
-    priority = StringField("Priority:")
-    age = StringField("Age:")
+    priority = StringField("Priority:", validators=[DataRequired()])
+    birth_date = StringField("Birth date:", validators=[DataRequired()])
     submit = SubmitField("Submit")
 
 class EmployeeForm(FlaskForm):
     name = StringField("Name:", validators=[DataRequired()])
     surname = StringField("Surname:", validators=[DataRequired()])
     email = StringField("Email:", validators=[DataRequired()])
-    reg_date =StringField("Registration Date:")
-    branch_name = StringField("Branch Name:")
+    birth_date =StringField("Birth Date:", validators=[DataRequired()])
+    branch_name = StringField("Branch Name:", validators=[DataRequired()])
     submit = SubmitField("Submit")   
 
 class ActiveCustomerForm(FlaskForm):
@@ -210,7 +223,8 @@ def delete_queue_customer(Queue,customer_id):
     query = queueref.where("customer_id", "==", customer_id).stream()
     for doc in query:
         queueref.document(doc.id).delete()      # deleting the employee who has passed uid when found
-    return redirect('/queue/<Queue>')
+   
+    return redirect('/queue/<Queue>')#it shows empty list fix
 
 @app.route('/customer_edit/<uid>', methods=["GET","POST"])
 def customer_edit(uid):
@@ -223,11 +237,18 @@ def customer_edit(uid):
     if request.method == "POST":
         # Update the customer fields with the form data
         customer['name'] = request.form['name']
-        customer['email'] = request.form['email']
         customer['surname'] = request.form['surname']
         customer['priority'] = request.form['priority']
-        customer['age'] = request.form['age']
+        customer['reg_date'] = request.form['birth_date']#we keep birth day as a reg_date in db, idk why
+        customer['email'] = request.form['email']
+
+        #updating age according to birth_date
+        today = date.today()
+        reg_date = datetime.strptime(customer['reg_date'], '%d/%m/%Y').date()
+        customer['age'] = today.year - reg_date.year - ((today.month, today.day) < (reg_date.month, reg_date.day))
+
         try:
+            auth.update_user(uid,email=customer['email'])#updating email in firebase auth
             customersref.document(doc.id).update(customer) # Update the customer document in the Customers collection
             flash("User Updated Successfully!")
             return redirect("customer_edit.html", uid=uid)
@@ -235,7 +256,7 @@ def customer_edit(uid):
             flash("Error! Looks like there was a problem...try again!")
             return render_template("customer_edit.html", form=form, customer=customer, uid=uid)
     else:
-        return render_template("customer_edit.html", form=form, customer=customer, uid=uid)#delete ekle
+        return render_template("customer_edit.html", form=form, customer=customer, uid=uid)
 
 @app.route('/employee_edit/<uid>', methods=["GET","POST"])
 def employee_edit(uid):
@@ -248,10 +269,11 @@ def employee_edit(uid):
     if request.method == "POST":
         # Update the employee fields with the form data
         employee['name'] = request.form['name']
-        employee['email'] = request.form['email']
         employee['surname'] = request.form['surname']
-        employee['reg_date'] = request.form['reg_date']
-
+        employee['reg_date'] = request.form['birth_date']
+        employee['email'] = request.form['email']
+        
+        #updating the branch
         branchesref= db.collection('Branches')
         branch_query = branchesref.where("name", "==", request.form['branch_name']).stream()  
         new_branch = {}
@@ -260,6 +282,7 @@ def employee_edit(uid):
         employee['branch']=new_branch
     
         try:
+            auth.update_user(uid,email=employee['email'])#updating email in auth
             employeesref.document(doc.id).update(employee) # Update the employee document in the Employees collection
             flash("User Updated Successfully!")
             return redirect("employee_edit.html", uid=uid)
@@ -280,9 +303,7 @@ def queue_cust_edit(Queue,customer_id):
 
     if request.method == "POST":
         # Update the customer fields with the form data
-        active_customer['name'] = request.form['name']
         active_customer['priority'] = request.form['priority']
-        active_customer['surname'] = request.form['surname']
         active_customer['processType'] = request.form['processType']
         active_customer['total_waited_time'] = request.form['total_waited_time']
 
@@ -296,6 +317,40 @@ def queue_cust_edit(Queue,customer_id):
     else:
         return render_template("queue_cust_edit.html", form=form, active_customer=active_customer, Queue=Queue, customer_id=customer_id)    
 
+@app.route("/add_customer", methods = ["POST", "GET"])
+def add_customer():
+    form=CustomerForm()
+    customer={}
+    if request.method == "POST":#Only listen to POST
+        # Update the employee fields with the form data
+        customer['name'] = request.form['name']
+        customer['email'] = request.form['email']
+        customer['surname'] = request.form['surname']
+        customer['reg_date'] = request.form['birth_date']
+        customer['priority'] = request.form['priority']
+        customer['password'] = '123456'# password? fix
+
+    #calculating age according to birth_date
+        today = date.today()
+        reg_date = datetime.strptime(customer['reg_date'], '%d/%m/%Y').date()
+        customer['age'] = today.year - reg_date.year - ((today.month, today.day) < (reg_date.month, reg_date.day))
+
+        try:
+            #Try creating the user account using the provided data
+            auth_cust= auth.create_user(email=customer['email'], password=customer['password'])
+            customer['uid']=auth_cust.uid
+            #Append data to the firebase realtime database
+            newcustomersref = db.collection('Customers')
+            newcustomersref.document().set(customer)
+            #Go to customer list page
+            return redirect(url_for('customer'))
+        except:
+            #If there is any error, redirect to customer list page
+            return redirect(url_for('customer'))
+
+    else:
+        return render_template("add_customer.html",form=form)
+
 @app.route("/add_employee/<name>", methods = ["POST", "GET"])
 def add_employee(name):
     form=EmployeeForm()
@@ -305,7 +360,7 @@ def add_employee(name):
         employee['name'] = request.form['name']
         employee['email'] = request.form['email']
         employee['surname'] = request.form['surname']
-        employee['reg_date'] = request.form['reg_date']
+        employee['reg_date'] = request.form['birth_date']
         employee['password'] = '123456'# password? fix
 
         branchesref= db.collection('Branches')
@@ -336,13 +391,13 @@ if __name__ == "__main__":
     app.run(debug=True)
 
 ##### to do #####
-#log out kitle -bişe ekledim ama login autha bağlı olmadığından deneyemedim
-#css queue cust editte gözükmüyor, düzelt
-#formlarda değişmeyecek kısımları kitle
-#add employee sign in yapamıyor
-#login i autha bağlamayı dene -firebase_admin.auth olmadı password doğrulamıyor, pyrebase i deniyorum ama setup sıkıntı var sanırım
+#log out kitle -flask_login deki @login_required eklemeye çalış
+#css queue cust editte gözükmüyor, düzelt -<style> olarak ekledim şimdilik
+#formlarda error check ekle
+#login i autha bağlamaya çalış
 #UI improvements
 #dashboarda başla
 #total waited time gözükmüyor bi sor
 #queue cust editte priorityi sadece o queue için geçici ayarlıyoruz bence ok ama yine de sor
-#admin customer eklesin mi?
+#error check ekle
+#simulation için loop dene bi ara

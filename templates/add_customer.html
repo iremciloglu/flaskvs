@@ -1,6 +1,6 @@
 
 {% block header %}
-  <title>New Employee Adding</title>
+  <title>New Customer Adding</title>
   <link rel="stylesheet" href="../static/view_list.css">
   <link rel="stylesheet" href="../static/edit.css">
   {% endblock %}
@@ -8,11 +8,11 @@
  
  {% block content %}
 
-  <h1>New Employee Adding</h1>
+  <h1>New Customer Adding</h1>
   
   <br/>
 <div class="shadow p-3 mb-5 bg-body rounded">
-  <form action="http://127.0.0.1:5000/add_employee/{{name}}" method="POST">
+  <form action="http://127.0.0.1:5000/add_customer" method="POST">
       {{ form.hidden_tag() }}
 
       {{ form.name.label(class="form-label") }}
@@ -35,9 +35,12 @@
       {{ form.birth_date(class="form-control") }}
 
       <br/>
+      {{ form.priority.label(class="form-label") }}
+
+      {{ form.priority(class="form-control") }}
+
+      <br/>
       
-     
-		
       {{ form.submit(class="btn btn-secondary") }}
   </form>
 </div>
