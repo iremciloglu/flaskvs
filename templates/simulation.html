@@ -1,0 +1,13 @@
+
+{% block header %}
+<title>{% block title %}Simulation Page{% endblock %}</title>
+  <link rel="stylesheet" href="../static/home.css">
+  <link rel="stylesheet" href="../static/view_list.css">
+  {% endblock %}
+ {% extends 'main.html' %}
+  {% block content %}
+    <h1>Simulation </h1>
+    <h2>We can not create data twice without changing the name and surname list, at least change the surname list with all new surnames.</h2>
+    <a href="http://127.0.0.1:5000/simulation_loop" class="button">Data Create Start</a>
+
+{% endblock %}

@@ -8,7 +8,8 @@ from wtforms.validators import DataRequired
 import os
 import base64
 import bcrypt
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
+import random
 
 app = Flask(__name__)
 SECRET_KEY = os.urandom(32)
@@ -322,7 +323,7 @@ def add_customer():
     form=CustomerForm()
     customer={}
     if request.method == "POST":#Only listen to POST
-        # Update the employee fields with the form data
+        # Update the customer fields with the form data
         customer['name'] = request.form['name']
         customer['email'] = request.form['email']
         customer['surname'] = request.form['surname']
@@ -334,7 +335,8 @@ def add_customer():
         today = date.today()
         reg_date = datetime.strptime(customer['reg_date'], '%d/%m/%Y').date()
         customer['age'] = today.year - reg_date.year - ((today.month, today.day) < (reg_date.month, reg_date.day))
-
+        if customer['age']>65 and customer['priority']<2:
+                customer['priority']=2
         try:
             #Try creating the user account using the provided data
             auth_cust= auth.create_user(email=customer['email'], password=customer['password'])
@@ -386,6 +388,57 @@ def add_employee(name):
     else:
         return render_template("add_employee.html",name=name,form=form)
 
+@app.route("/simulation", methods = ["POST", "GET"])
+def simulation():
+    return render_template("simulation.html")
+
+@app.route("/simulation_loop", methods = ["POST", "GET"])
+def simulation_loop():# dikkat! bu loopu 2 kere aynı data listler ile çalıştıramayız, 1 kere çalıştırdıktan sonra; 
+    #en azından surname list i yeni, kullanılmamış surnamelerle değişmeli
+    names=['Jane','Olivia','Joe','Ali','Mehmet','Beyza','Dave','Bella','John','Joan','Kurt','Jon Bon','Jake','Sebnem','Hürrem',
+           'Melisa','David','Fallon','Deniz','Elijah']#20
+    surnames=['Simpson','Yilmaz','Nickelson','Trump','Lennon','Crawford','Kobain','Jovi','Ferah','Sultan']#10
+    start_dt = date(1935, 1, 1)
+    end_dt = date(2005, 12, 31)
+
+    # difference between current and previous date
+    delta = timedelta(days=1)
+    # store the dates between two dates in a list
+    dates = []
+    while start_dt <= end_dt:
+        # add current date to list by converting  it to iso format
+        dates.append(start_dt.strftime('%d/%m/%Y'))
+        # increment start date by timedelta
+        start_dt += delta
+    customer={}
+    for i in range(0,len(names)):
+        # Fill the customer fields 
+        customer['name'] = names[i]
+        for j in range(0,len(surnames)):
+            customer['surname'] = surnames[j]
+            customer['email'] = customer['name'].lower()+'.'+customer['surname'].lower()+'@gmail.com'
+            customer['reg_date'] = random.sample(dates, k=1)[0]
+            customer['priority'] = random.randint(1, 3)
+            customer['password'] = '123456' 
+
+            #calculating age according to birth_date
+            today = date.today()
+            reg_date = datetime.strptime(customer['reg_date'], '%d/%m/%Y').date()
+            customer['age'] = today.year - reg_date.year - ((today.month, today.day) < (reg_date.month, reg_date.day))
+            if customer['age']>65 and customer['priority']<2:
+                customer['priority']=2
+            try:
+                #Try creating the user account using the provided data
+                auth_cust= auth.create_user(email=customer['email'], password=customer['password'])
+                customer['uid']=auth_cust.uid
+                #Append data to the firebase realtime database
+                newcustomersref = db.collection('Customers')
+                newcustomersref.document().set(customer)    
+            except:
+                #If there is any error, redirect to customer list page
+                return redirect(url_for('home'))
+    #Go to customer list page
+    return redirect(url_for('customer'))    
 
 if __name__ == "__main__":
     app.run(debug=True)
@@ -399,5 +452,5 @@ if __name__ == "__main__":
 #dashboarda başla
 #total waited time gözükmüyor bi sor
 #queue cust editte priorityi sadece o queue için geçici ayarlıyoruz bence ok ama yine de sor
-#error check ekle
+#error check ekle:aynı email eklenemez error ver, 
 #simulation için loop dene bi ara
