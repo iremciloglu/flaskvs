@@ -58,4 +58,16 @@ body {
   .dropdown:hover .dropdown-content {
     display: block;
   }
+  .navbar{
+    width: 99%;
+    position: fixed;
+    overflow:visible;
+  }
 
+  ul li{
+    padding-right: 15px;
+  }
+
+  h1{
+    padding-top: 100px;
+  }

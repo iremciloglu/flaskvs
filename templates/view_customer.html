@@ -6,7 +6,7 @@
   {% extends 'main.html' %}
    {% block content %}
   <h1>Customer List</h1>
-  
+  <a href="http://127.0.0.1:5000/add_customer" class="button">Add New Customer</a>
 <table>
   <tr>
     {% for header in headings %}
@@ -28,6 +28,6 @@
   </tr>
   {% endfor %}
 </table>
-<a href="http://127.0.0.1:5000/add_customer" class="button">Add New Customer</a>
+
 
 {% endblock %}
