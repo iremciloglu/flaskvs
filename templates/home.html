@@ -2,10 +2,57 @@
 {% block header %}
 <title>{% block title %}Admin Page{% endblock %}</title>
   <link rel="stylesheet" href="../static/home.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
   {% endblock %}
  {% extends 'main.html' %}
   {% block content %}
     <h1>Welcome admin</h1>
-    <h2>Lets put some statistics here...</h2>
+    <h2>Lets put some statistics here such as: hold the #customers come that day,#customers register in a month,graph of customer number in week</h2>
+  <h2>#employees,graph of #tickets in each branch in a day, how many people in the queue for each branch maybe as a graph?
+  </h2>
+  <canvas id="lineChartWeekly" width="400" height="400"></canvas>
+  <script>
+    var ctx=document.getElementById("lineChartWeekly").getContext("2d");
+    var lineChartWeekly= new Chart(ctx,{
+      type:"line",
+      data:{
+        labels: {{ week_label|tojson }},
+        datasets:[
+        {
+          label:"Customers",
+          data: {{ weekly_list|tojson }},
+          fill: false,
+          borderColor:"rgb(75,192,192)",
+          lineTension: 0.1
+        }
+        ]
+      },
+      options:{
+        responsive:false
+      }
+    });
+    </script>
 
+<canvas id="barChartBranch" width="400" height="400"></canvas>
+<script>
+  var cta=document.getElementById("barChartBranch").getContext("2d");
+  var barChartBranch= new Chart(cta,{
+    type:"bar",
+    data:{
+      labels: {{ branch_ticket_label|tojson }},
+      datasets:[
+      {
+        label:"Tickets",
+        data: {{ branch_ticket_list|tojson }},
+        fill: false,
+        borderColor:"rgb(190,80,190)",
+        lineTension: 0.1
+      }
+      ]
+    },
+    options:{
+      responsive:false
+    }
+  });
+  </script>
 {% endblock %}
