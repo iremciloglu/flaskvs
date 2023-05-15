@@ -22,9 +22,17 @@
             <a href="http://127.0.0.1:5000/branch">View Branches</a>
             <a href="http://127.0.0.1:5000/cust">View Customers</a>
           </div>
-        </li>  
-        <li><a href="http://127.0.0.1:5000/simulation">Simulation</a></li>    
-    </ul>
+        </li>
+      <form action="/run_simulation" method="POST">
+          <button type="submit">Run Simulation</button>
+        </form>
+
+        {% if output %}
+        <div class="output">
+          <pre>{{ output }}</pre>
+        </div>
+        {% endif %}
+            </ul>
 
     <section>
         <header>

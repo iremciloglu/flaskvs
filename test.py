@@ -10,6 +10,7 @@ import base64
 import bcrypt
 from datetime import date, datetime, timedelta
 import random
+import subprocess
 
 app = Flask(__name__)
 SECRET_KEY = os.urandom(32)
@@ -543,7 +544,7 @@ def simulation_loop2():# dikkat! bu loopu 2 kere aynı data listler ile çalış
                     #If there is any error, redirect to customer list page
                     return redirect(url_for('home'))
     #Go to customer list page
-    return redirect(url_for('customer'))       
+    return redirect(url_for('customer'))   
 
 #tihs one for creating tickets for existing users
 @app.route("/simulation_loop", methods = ["POST", "GET"])
@@ -635,12 +636,26 @@ def simulation_loop():
     #Go to customer list page
     return redirect(url_for('customer'))  
 
+
+# the route for running the simulation
+@app.route('/run_simulation', methods=['POST'])
+def run_simulation_route():
+    # check if the button was clicked
+    if request.method == 'POST':
+        # run the simulation script using subprocess
+        process = subprocess.Popen(['python', 'sim.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        # capture the output from the subprocess
+        stdout, stderr = process.communicate()
+        # decode the output from bytes to string
+        output = stdout.decode('utf-8')
+        # pass the output to the admin panel template
+        return render_template('home.html', output=output)
+    
 def delete_all_customers():
     customersref = db.collection('Customers')
     all_customers = customersref.stream()
     for doc in all_customers:
         delete_customer(doc.uid)
-
 
 
 if __name__ == "__main__":
