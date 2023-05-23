@@ -11,6 +11,8 @@ import bcrypt
 from datetime import date, datetime, timedelta
 import random
 import subprocess
+import calendar
+import numpy as np
 
 app = Flask(__name__)
 SECRET_KEY = os.urandom(32)
@@ -62,7 +64,7 @@ def login():
         if user.to_dict()['password'] == password:
             session["email"]=email
             # user authentication succeeded
-            return redirect("/home")
+            return redirect(url_for("home"))
         else:
             # user authentication failed
             pass
@@ -79,12 +81,32 @@ def logout():
     
 @app.route('/home',methods=["GET", "POST"])
 def home():
-    num_of_cust_day=20
+    #Get the current UTC datetime
+    now_utc = datetime.utcnow()
+    # Convert to the desired timezone (UTC+2 in this case)
+    now = now_utc + timedelta(hours=2)
+
+    num_of_cust_day=0
+    ticketsref = db.collection('Tickets') #our database's connection
+    docs = ticketsref.stream()
+    for doc in docs.where('date_time','>=',now.day):#idk
+       num_of_cust_day=+1
+
+
+    #num_of_cust_day=20
     num_of_cust_reg=30#for a month
     num_of_emp=10
     weekly_list=[]
     week_label=['1st week','2nd week','3rd week','4th week']
-    week1_ticket=112#ticket num for each week for graph in a month(line)
+
+    week1_ticket=0#ticket num for each week for graph in a month(line)
+
+    #x = np.array(calendar.monthcalendar(now.year, now.month))
+   # week_of_month = np.where(x==day)[0][0] + 1
+
+    for doc in docs.where('date_time','>=',now.month):#fix
+        if doc.where('date_time','>=',now.day-7):
+            week1_ticket=+1
     week2_ticket=173
     week3_ticket=84
     week4_ticket=66
@@ -425,7 +447,6 @@ def simulation():
 
 @app.route("/settings", methods = ["POST", "GET"])
 def settings():
-
     return render_template("settings.html")
 
 #this one for creating users then creating tickets
@@ -571,7 +592,7 @@ def simulation_loop():
     times = []
     while start_dat < end_dat:
         # add current date to list by converting  it to iso format
-        times.append(start_dat.strftime("%d %B %Y at %H:%M:%S UTC+2"))
+        times.append(start_dat)
         # increment start date by timedelta
         start_dat += delta    
 
@@ -601,31 +622,31 @@ def simulation_loop():
             
             # Format the datetime as a string in the desired format
             ticket['date_time']= random.sample(times,k=1)[0] 
-            date_time= datetime.strptime(ticket['date_time'], "%d %B %Y at %H:%M:%S UTC+2")
+            date_time= ticket['date_time']
 
             ticket['exitTime']= random.sample(times,k=1)[0] 
-            exitt= datetime.strptime(ticket['exitTime'], "%d %B %Y at %H:%M:%S UTC+2")
+            exitt= ticket['exitTime']
             
             while exitt < date_time or (exitt-date_time)> timedelta(hours=1) or (exitt-date_time)< timedelta(minutes=2):
                 ticket['exitTime']= random.sample(times,k=1)[0] 
-                exitt= datetime.strptime(ticket['exitTime'], "%d %B %Y at %H:%M:%S UTC+2")
+                exitt= ticket['exitTime']
 
             ticket['endServeTime']= random.sample(times,k=1)[0]
-            endServe= datetime.strptime(ticket['endServeTime'], "%d %B %Y at %H:%M:%S UTC+2")
+            endServe= ticket['endServeTime']
             while endServe < exitt or (endServe-exitt)> timedelta(hours=1) or (endServe-exitt)< timedelta(minutes=2):
                 ticket['endServeTime']= random.sample(times,k=1)[0]     
-                endServe= datetime.strptime(ticket['endServeTime'], "%d %B %Y at %H:%M:%S UTC+2")
+                endServe= ticket['endServeTime']
             
             
             total_waited_time = exitt - date_time
-            minutes, seconds = divmod(total_waited_time.seconds, 60)
-            formatted_waited_time = f"{minutes} min {seconds} s"
-            ticket['total_waited_time']=formatted_waited_time
+            #minutes, seconds = divmod(total_waited_time.seconds, 60)
+            #formatted_waited_time = f"{minutes} min {seconds} s"
+            ticket['total_waited_time']=divmod(total_waited_time.seconds, 60)
             
             total_process_time = endServe-exitt
-            minutes, seconds = divmod(total_process_time.seconds, 60)
-            formatted_process_time = f"{minutes} min {seconds} s"
-            ticket['total_process_time']=formatted_process_time
+            #minutes, seconds = divmod(total_process_time.seconds, 60)
+            #formatted_process_time = f"{minutes} min {seconds} s"
+            ticket['total_process_time']=divmod(total_process_time.seconds, 60)
 
             #add ticket in db
             randqueueref = db.collection('Tickets')
@@ -663,13 +684,10 @@ if __name__ == "__main__":
 
 ##### to do #####
 #log out kitle -flask_login deki @login_required eklemeye çalış
-#css queue cust editte gözükmüyor, düzelt -<style> olarak ekledim şimdilik
 #formlarda error check ekle
 #login i autha bağlamaya çalış
 #UI improvements
 #dashboarda başla
-#total waited time gözükmüyor bi sor
-#queue cust editte priorityi sadece o queue için geçici ayarlıyoruz bence ok ama yine de sor
 #error check ekle:aynı email eklenemez error ver, 
 #settings page
 #queue positiona göre basmalı
