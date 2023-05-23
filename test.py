@@ -670,7 +670,7 @@ def run_simulation_route():
         # decode the output from bytes to string
         output = stdout.decode('utf-8')
         # pass the output to the admin panel template
-        return render_template('home.html', output=output)
+        return redirect(url_for('home'), output=output)
     
 def delete_all_customers():
     customersref = db.collection('Customers')
