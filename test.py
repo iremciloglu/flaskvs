@@ -89,8 +89,8 @@ def home():
     num_of_cust_day=0
     ticketsref = db.collection('Tickets') #our database's connection
     docs = ticketsref.stream()
-    for doc in docs.where('date_time','>=',now.day):#idk
-       num_of_cust_day=+1
+    #for doc in docs.where('date_time','>=',now.day):#idk
+       #num_of_cust_day=+1
 
 
     #num_of_cust_day=20
@@ -104,9 +104,9 @@ def home():
     #x = np.array(calendar.monthcalendar(now.year, now.month))
    # week_of_month = np.where(x==day)[0][0] + 1
 
-    for doc in docs.where('date_time','>=',now.month):#fix
-        if doc.where('date_time','>=',now.day-7):
-            week1_ticket=+1
+    #for doc in docs.where('date_time','>=',now.month):#fix
+        #if doc.where('date_time','>=',now.day-7):
+            #week1_ticket=+1
     week2_ticket=173
     week3_ticket=84
     week4_ticket=66
