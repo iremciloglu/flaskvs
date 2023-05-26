@@ -12,7 +12,7 @@ from datetime import date, datetime, timedelta
 import random
 import subprocess
 import calendar
-import numpy as np
+
 
 app = Flask(__name__)
 SECRET_KEY = os.urandom(32)
@@ -449,228 +449,14 @@ def simulation():
 def settings():
     return render_template("settings.html")
 
-#this one for creating users then creating tickets
-@app.route("/simulation_loop2", methods = ["POST", "GET"])
-def simulation_loop2():# dikkat! bu loopu 2 kere aynı data listler ile çalıştıramayız, 1 kere çalıştırdıktan sonra; 
-    #en azından surname list i yeni, kullanılmamış surnamelerle değişmeli 
-    names=['Jane','Olivia','Joe','Ali','Mehmet','Beyza','Dave','Bella','John','Joan','Kurt','Bon','Jake','Sebnem','Hürrem',
-           'Melisa','David','Fallon','Deniz','Elijah']#20
-    surnames=['Simpson','Yilmaz','Nickelson','Trump','Lennon','Crawford','Kobain','Jovi','Ferah','Sultan']#10
-    chars=['','.','-','_','+','*']#6 
-    #!!it will create 20*10*6= 1200 new customer!!
-    employee_list=[]
-    employeeref=db.collection('Employees').stream()
-    for doc in employeeref:
-        employee_list.append(doc.to_dict()['name']+' '+doc.to_dict()['surname'])
-
-    processTypes=['Payments','Open New Account','Withdraw/Deposit Money','Investment to Currency']
-    ###for birthday date
-    start_dt = date(1935, 1, 1)
-    end_dt = date(2005, 12, 31)
-    # difference between current and previous date
-    delta = timedelta(days=1)
-    # store the dates between two dates in a list
-    dates = []
-    while start_dt <= end_dt:
-        # add current date to list by converting  it to iso format
-        dates.append(start_dt.strftime('%d/%m/%Y'))
-        # increment start date by timedelta
-        start_dt += delta
-        
-    ###for timestamps in ticket
-     #Get the current UTC datetime
-    now_utc = datetime.utcnow()
-    # Convert to the desired timezone (UTC+2 in this case)
-    now = now_utc + timedelta(hours=2)
-
-    start_dat = datetime(2023, 3, 3)
-    end_dat = now
-    # difference between current and previous date
-    delta = timedelta(seconds=30)
-    # store the times between two times in a list
-    times = []
-    while start_dat < end_dat:
-        # add current date to list by converting  it to iso format
-        times.append(start_dat.strftime("%d %B %Y at %H:%M:%S UTC+2"))
-        # increment start date by timedelta
-        start_dat += delta    
-
-    customer={}
-    ticket={}
-    for i in range(0,len(names)):
-        # Fill the customer fields 
-        customer['name'] = names[i]
-        for j in range(0,len(surnames)):
-            for char in chars:
-                customer['surname'] = surnames[j]
-                customer['email'] = customer['name'].lower()+char+customer['surname'].lower()+'@gmail.com'
-                customer['reg_date'] = random.sample(dates, k=1)[0]
-                customer['priority'] = random.randint(1, 3)
-                customer['password'] = '123456' 
-
-                #calculating age according to birth_date
-                today = date.today()
-                reg_date = datetime.strptime(customer['reg_date'], '%d/%m/%Y').date()
-                customer['age'] = today.year - reg_date.year - ((today.month, today.day) < (reg_date.month, reg_date.day))
-                if customer['age']>65 and customer['priority']<2:
-                    customer['priority']=2
-                try:
-                    #Try creating the user account using the provided data
-                    auth_cust= auth.create_user(email=customer['email'], password=customer['password'])
-                    customer['uid']=auth_cust.uid
-                    #Append data to the firebase realtime database
-                    newcustomersref = db.collection('Customers')
-                    newcustomersref.document().set(customer) 
-
-                    #create a passive ticket for customer
-                    ticket['customer_id']=customer['uid']
-                    ticket['name']=customer['name']
-                    ticket['surname']=customer['surname']
-                    ticket['priority']=customer['priority']
-                    ticket['processType']=random.sample(processTypes,k=1)[0]
-                    ticket['result']="Completed"
-                    ticket['served_employee']=random.sample(employee_list,k=1)[0]
-                    
-                    # Format the datetime as a string in the desired format
-                    ticket['date_time']= random.sample(times,k=1)[0] 
-                    date_time= datetime.strptime(ticket['date_time'], "%d %B %Y at %H:%M:%S UTC+2")
-
-                    ticket['exitTime']= random.sample(times,k=1)[0] 
-                    exitt= datetime.strptime(ticket['exitTime'], "%d %B %Y at %H:%M:%S UTC+2")
-                    
-                    while exitt < date_time or (exitt-date_time)> timedelta(hours=5) or (exitt-date_time)< timedelta(seconds=3):
-                        ticket['exitTime']= random.sample(times,k=1)[0] 
-                        exitt= datetime.strptime(ticket['exitTime'], "%d %B %Y at %H:%M:%S UTC+2")
-                        
-                    ticket['endServeTime']= random.sample(times,k=1)[0]
-                    endServe= datetime.strptime(ticket['endServeTime'], "%d %B %Y at %H:%M:%S UTC+2")
-                    while endServe < exitt or (endServe-exitt)> timedelta(hours=2) or (endServe-exitt)< timedelta(minutes=1):
-                        ticket['endServeTime']= random.sample(times,k=1)[0]
-                        endServe = datetime.strptime(ticket['endServeTime'], "%d %B %Y at %H:%M:%S UTC+2")
-                        
-                    total_waited_time = exitt - date_time
-                    minutes, seconds = divmod(total_waited_time.seconds, 60)
-                    formatted_waited_time = f"{minutes} min {seconds} s"
-                    ticket['total_waited_time']=formatted_waited_time
-            
-                    total_process_time = endServe-exitt
-                    minutes, seconds = divmod(total_process_time.seconds, 60)
-                    formatted_process_time = f"{minutes} min {seconds} s"
-                    ticket['total_process_time']=formatted_process_time
-
-                    #add ticket in db
-                    randqueueref = db.collection('Tickets')
-                    randqueueref.document().set(ticket)  
-                except:
-                    #If there is any error, redirect to customer list page
-                    return redirect(url_for('home'))
-    #Go to customer list page
-    return redirect(url_for('customer'))   
-
-#tihs one for creating tickets for existing users
-@app.route("/simulation_loop", methods = ["POST", "GET"])
-def simulation_loop():
-    ####şuan sadece ticket yaratıyor
-    employee_list=[]
-    employeeref=db.collection('Employees').stream()
-    for doc in employeeref:
-        employee_list.append(doc.to_dict()['name']+' '+doc.to_dict()['surname'])
-
-    processTypes=['Payments','Open New Account','Withdraw/Deposit Money','Investment to Currency']
-        
-    ###for timestamps in ticket
-     #Get the current UTC datetime
-    now_utc = datetime.utcnow()
-    # Convert to the desired timezone (UTC+2 in this case)
-    now = now_utc + timedelta(hours=2)
-
-    start_dat = datetime(2023, 3, 3)
-    end_dat = now
-    # difference between current and previous date
-    delta = timedelta(seconds=15)
-    # store the times between two times in a list
-    times = []
-    while start_dat < end_dat:
-        # add current date to list by converting  it to iso format
-        times.append(start_dat)
-        # increment start date by timedelta
-        start_dat += delta    
-
-    customers=[]
-    customersref=db.collection('Customers').stream()
-    for doc in customersref:
-        customers.append(doc.to_dict())
-
-    branches=[]
-    branchesref=db.collection('Branches').stream()
-    for doc in branchesref:
-        branches.append(doc.to_dict()['name'])
-
-    ticket={}
-    for i in range(0,len(customers)):
-        try:
-
-            #create a passive ticket for customer
-            ticket['customer_id']=customers[i]['uid']
-            ticket['name']=customers[i]['name']
-            ticket['surname']=customers[i]['surname']
-            ticket['priority']=customers[i]['priority']
-            ticket['processType']=random.sample(processTypes,k=1)[0]
-            ticket['result']="Completed"
-            ticket['served_employee']=random.sample(employee_list,k=1)[0]
-            ticket['branch_name']=random.sample(branches,k=1)[0]
-            
-            # Format the datetime as a string in the desired format
-            ticket['date_time']= random.sample(times,k=1)[0] 
-            date_time= ticket['date_time']
-
-            ticket['exitTime']= random.sample(times,k=1)[0] 
-            exitt= ticket['exitTime']
-            
-            while exitt < date_time or (exitt-date_time)> timedelta(hours=1) or (exitt-date_time)< timedelta(minutes=2):
-                ticket['exitTime']= random.sample(times,k=1)[0] 
-                exitt= ticket['exitTime']
-
-            ticket['endServeTime']= random.sample(times,k=1)[0]
-            endServe= ticket['endServeTime']
-            while endServe < exitt or (endServe-exitt)> timedelta(hours=1) or (endServe-exitt)< timedelta(minutes=2):
-                ticket['endServeTime']= random.sample(times,k=1)[0]     
-                endServe= ticket['endServeTime']
-            
-            
-            total_waited_time = exitt - date_time
-            #minutes, seconds = divmod(total_waited_time.seconds, 60)
-            #formatted_waited_time = f"{minutes} min {seconds} s"
-            ticket['total_waited_time']=divmod(total_waited_time.seconds, 60)
-            
-            total_process_time = endServe-exitt
-            #minutes, seconds = divmod(total_process_time.seconds, 60)
-            #formatted_process_time = f"{minutes} min {seconds} s"
-            ticket['total_process_time']=divmod(total_process_time.seconds, 60)
-
-            #add ticket in db
-            randqueueref = db.collection('Tickets')
-            randqueueref.document().set(ticket)  
-        except:
-            #If there is any error, redirect to home page
-            return redirect(url_for('home'))
-    #Go to customer list page
-    return redirect(url_for('customer'))  
 
 
 # the route for running the simulation
 @app.route('/run_simulation', methods=['POST'])
 def run_simulation_route():
-    # check if the button was clicked
-    if request.method == 'POST':
-        # run the simulation script using subprocess
-        process = subprocess.Popen(['python', 'sim.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        # capture the output from the subprocess
-        stdout, stderr = process.communicate()
-        # decode the output from bytes to string
-        output = stdout.decode('utf-8')
-        # pass the output to the admin panel template
-        return redirect(url_for('home'))
+
+    output = subprocess.check_output(['python', 'bank_simulation.py'], universal_newlines=True)
+    return render_template('main.html', output=output)
     
 def delete_all_customers():
     customersref = db.collection('Customers')
@@ -681,13 +467,3 @@ def delete_all_customers():
 
 if __name__ == "__main__":
     app.run(debug=True)
-
-##### to do #####
-#log out kitle -flask_login deki @login_required eklemeye çalış
-#formlarda error check ekle
-#login i autha bağlamaya çalış
-#UI improvements
-#dashboarda başla
-#error check ekle:aynı email eklenemez error ver, 
-#settings page
-#queue positiona göre basmalı
