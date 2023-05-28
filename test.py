@@ -89,9 +89,8 @@ def home():
     num_of_cust_day=0
     ticketsref = db.collection('Tickets') #our database's connection
     docs = ticketsref.stream()
-    #for doc in docs.where('date_time','>=',now.day):#idk
-       #num_of_cust_day=+1
-
+   # for doc in docs.where('date_time','>=',now.day):#idk
+      # num_of_cust_day=+1
 
     #num_of_cust_day=20
     num_of_cust_reg=30#for a month
@@ -101,12 +100,12 @@ def home():
 
     week1_ticket=0#ticket num for each week for graph in a month(line)
 
-    #x = np.array(calendar.monthcalendar(now.year, now.month))
-   # week_of_month = np.where(x==day)[0][0] + 1
+    x = np.array(calendar.monthcalendar(now.year, now.month))
+    #week_of_month = np.where(x==day)[0][0] + 1
 
-    #for doc in docs.where('date_time','>=',now.month):#fix
-        #if doc.where('date_time','>=',now.day-7):
-            #week1_ticket=+1
+  #  for doc in docs.where('date_time','>=',now.month):#fix
+       # if doc.where('date_time','>=',now.day-7):
+           # week1_ticket=+1
     week2_ticket=173
     week3_ticket=84
     week4_ticket=66
@@ -639,14 +638,14 @@ def simulation_loop():
             
             
             total_waited_time = exitt - date_time
-            #minutes, seconds = divmod(total_waited_time.seconds, 60)
-            #formatted_waited_time = f"{minutes} min {seconds} s"
-            ticket['total_waited_time']=divmod(total_waited_time.seconds, 60)
+            minutes, seconds = divmod(total_waited_time.seconds, 60)
+            formatted_waited_time = f"{minutes}m {seconds}s"
+            ticket['total_waited_time']=formatted_waited_time
             
             total_process_time = endServe-exitt
-            #minutes, seconds = divmod(total_process_time.seconds, 60)
-            #formatted_process_time = f"{minutes} min {seconds} s"
-            ticket['total_process_time']=divmod(total_process_time.seconds, 60)
+            minutes, seconds = divmod(total_process_time.seconds, 60)
+            formatted_process_time = f"{minutes}m {seconds}s"
+            ticket['total_process_time']=formatted_process_time
 
             #add ticket in db
             randqueueref = db.collection('Tickets')
