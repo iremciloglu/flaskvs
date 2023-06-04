@@ -449,21 +449,18 @@ def simulation():
 def settings():
     return render_template("settings.html")
 
-
-
-# the route for running the simulation
-@app.route('/run_simulation', methods=['POST'])
-def run_simulation_route():
-
-    output = subprocess.check_output(['python', 'bank_simulation.py'], universal_newlines=True)
-    return render_template('main.html', output=output)
-    
 def delete_all_customers():
     customersref = db.collection('Customers')
     all_customers = customersref.stream()
     for doc in all_customers:
         delete_customer(doc.uid)
 
+@app.route('/graph_view', methods=['POST','GET'])
+def graph_view():
+    subprocess.run(['python', 'bank_simulation.py'])
+    with open('simulation_results.txt', 'r') as file:
+        output = file.readlines()
+    return render_template("graph_view.html", output=output[0], output2=output[1])
 
 if __name__ == "__main__":
     app.run(debug=True)

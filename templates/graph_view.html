@@ -1,0 +1,49 @@
+
+{% block header %}
+<title>{% block title %}Admin Page{% endblock %}</title>
+  <link rel="stylesheet" href="../static/home.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+  {% endblock %}
+
+  {% block content %}
+
+<canvas id="lineChartSim" width="400" height="400"></canvas>
+<script>
+  var ctx = document.getElementById("lineChartSim").getContext("2d");
+  var lineChartSim = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: {{ output }},
+      datasets: [
+        {
+          label: "Total Customer",
+          data: {{ output2 }},
+          fill: false,
+          borderColor: "rgb(75, 192, 192)",
+          lineTension: 0.1,
+        },
+      ],
+    },
+    options: {
+      responsive: false,
+      scales: {
+        x: {
+          display: true,
+          title: {
+            display: true,
+            text: "Total Time (s)",
+          },
+        },
+        y: {
+          display: true,
+          title: {
+            display: true,
+            text: "Total Customer",
+          },
+        },
+      },
+    },
+  });
+</script>
+{% endblock %}
+
