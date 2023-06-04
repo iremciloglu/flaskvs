@@ -10,7 +10,7 @@
   <body class="bg">
     <ul class="navbar">
       <li style="background-color:rgb(234, 235, 242)">
-        <a href="http://127.0.0.1:5000/home" style="color:#2812b6; font-family:'Times New Roman', Times, serif"><b>METUBank</b></a>
+        <a href="http://127.0.0.1:5000/home" style="color:#2812b6; font-family:Arial, Helvetica, sans-serif;"><b>METUBank</b></a>
       </li>
       <li style="float:right"><a href="{{ url_for('logout') }}">Log Out</a></li>
       <li style="float:right"><a href="http://127.0.0.1:5000/settings">Settings</a></li>
@@ -22,21 +22,10 @@
           <a href="http://127.0.0.1:5000/cust">View Customers</a>
         </div>
       </li>
-      <form action="/run_simulation" method="POST">
-        <button type="submit">Run Simulation</button>
-      </form>
+      <li style="float:left"><a href="http://127.0.0.1:5000/run_simulation">Simulation</a></li>
     </ul>
 
-    <section>
-      <header>
-        {% block header %}
-        {% endblock %}
-      </header>
-
-      {% block content %}
-      {% endblock %}
-      <pre>{{ output }}</pre>
-    </section>
+    
 
   </body>
 </html>

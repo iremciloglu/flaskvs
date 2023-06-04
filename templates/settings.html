@@ -2,10 +2,119 @@
 {% block header %}
 <title>{% block title %}Settings{% endblock %}</title>
   <link rel="stylesheet" href="../static/home.css">
+  <link rel="stylesheet" href="../static/view_list.css">
+  <style>
+  /* Apply styles to the <h1> element */
+h1 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+/* Apply styles to the .card class */
+.card {
+  border: 1px solid #ccc;
+  width:80%;
+  height: 50%;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  background-color: #f0edea; /* Set desired background color */
+  font-family:Arial, Helvetica, sans-serif;
+}
+
+/* Apply styles to the .card-header class */
+.card-header {
+  background-color: #babde7;
+  padding: 10px;
+  font-weight: bold;
+  font-size: 23px;
+}
+
+/* Apply styles to the .card-body class */
+.card-body {
+  padding: 5px;
+}
+
+/* Apply styles to the .card-text class */
+.card-text {
+  margin-bottom: 20px;
+}
+
+/* Apply styles to the .container class */
+.container {
+  width: 60%;
+  max-width: 960px;
+  /*margin: 0 auto;*/
+ /* padding: 0 15px;*/
+}
+
+/* Apply styles to the .row class */
+.row {
+  display: block;
+  flex-wrap: wrap;
+  /*margin: 0 -15px;*/
+}
+
+/* Apply styles to the .col-8 class */
+.col-8 {
+  flex-basis: 66.67%;
+  max-width: 66.67%;
+  padding: 0 15px;
+  color: #414147;
+  font-size: 23px;
+  
+}
+
+/* Apply styles to the <strong> elements */
+strong {
+  font-weight: bold;
+}
+
+/* Apply styles to the <br> elements */
+br {
+  padding: 5px;
+
+  margin-bottom: 10px;
+}
+
+  </style>
   {% endblock %}
  {% extends 'main.html' %}
   {% block content %}
     <h1>Settings:</h1>
-    <h2>Change email,password,pp?,name,bday</h2>
-    <h3>dark mode?,add new admin?,delete account?,notifications?</h3>
+
+    <div class="card">
+      <div class="card-header">
+        Admin Profile:
+      </div>
+      <div class="card-body">
+       
+        <p class="card-text">
+    
+    <div class="container">
+      <div class="row">
+        <div class="col-8">
+    
+        <strong>Name:</strong>
+      {{ admin.name }}<br/><br/>
+    
+      <strong>Surname:</strong>
+      {{ admin.surname }}<br/><br/>
+    
+      <strong>Email:</strong>
+      {{ admin.email }}<br/><br/>
+    
+      <strong>Age:</strong>
+      {{ admin.age }}<br/><br/>
+
+    </div>
+    </div>
+    </div>
+        </p>
+  </div>
+    </div>
+
+    <a href="http://127.0.0.1:5000/new_priority_add" class="button">Add New Priority</a>
+    <a href="http://127.0.0.1:5000/admin_edit/{{uid}}" class="button">Change Profile Details</a>
+    <a href="http://127.0.0.1:5000/delete_admin/{{uid}}" class="button">Delete Account</a>
 {% endblock %}

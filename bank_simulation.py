@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import time
 
 
+
 class BankSimulation:
     servers = []  # This list holds the servers
     queue = []  # This list holds the customers that are in the queue
@@ -260,7 +261,6 @@ def simulation(simulation_customer_number, arrival_rate, service_rate, num_serve
     plt.title('Graph of Total Time vs Total Customer Number')
     plt.show()
 
-
 if __name__ == "__main__":
 
-    simulation(50, 3, 4, 1, [1]*50)
+   simulation(50, 3, 4, 1, [1]*50)

@@ -7,7 +7,39 @@
  {% extends 'main.html' %}
   {% block content %}
     <h1>Simulation </h1>
-    <h2>We can not create data twice without changing the name and surname list, at least change the surname list with all new surnames.</h2>
-    <a href="http://127.0.0.1:5000/simulation_loop" class="button">Data Create Start</a>
+   
+    <canvas id="lineChartSim" width="400" height="400"></canvas>
+  <!--<script>
+    var ctx=document.getElementById("lineChartSim").getContext("2d");
+    var lineChartWeekly= new Chart(ctx,{
+      type:"line",
+      data:{
+        labels: {{ timer_total_customers|tojson }},
+        datasets:[
+        {
+          label:"Customers",
+          data: {{ timer_total_time|tojson }},
+          fill: false,
+          borderColor:"rgb(75,192,192)",
+          lineTension: 0.1
+        }
+        ]
+      },
+      options:{
+        responsive:false
+      }
+    });
+    </script>
+    -->
 
+<section>
+  <header>
+    {% block header %}
+    {% endblock %}
+  </header>
+
+  {% block content %}
+  {% endblock %}
+  <pre>{{ output }}</pre>
+</section>
 {% endblock %}

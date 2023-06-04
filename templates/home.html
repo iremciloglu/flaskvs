@@ -19,7 +19,7 @@
         labels: {{ week_label|tojson }},
         datasets:[
         {
-          label:"Customers",
+          label:"Customer number",
           data: {{ weekly_list|tojson }},
           fill: false,
           borderColor:"rgb(75,192,192)",
@@ -42,7 +42,7 @@
       labels: {{ branch_ticket_label|tojson }},
       datasets:[
       {
-        label:"Tickets",
+        label:"Tickets for today",
         data: {{ branch_ticket_list|tojson }},
         fill: false,
         borderColor:"rgb(190,80,190)",
