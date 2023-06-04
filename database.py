@@ -22,7 +22,7 @@ class Database:
 
     def print_metrics(self, total_customer, arrival_rate, service_rate, no_of_servers, priority_list, total_service_time,
                       total_arrival_time, arrival_interval_list):
-        print("-------------------")
+        """print("-------------------")
         print("Total Customer: ", total_customer)
         print("Total Arrival Time: ", total_arrival_time)
         print("Total Service Time: ", total_service_time)
@@ -35,7 +35,7 @@ class Database:
         print("Service Rate: ", service_rate)
         print("No of servers: ", no_of_servers)
 
-        print("-------------------")
+        print("-------------------")"""
 
     def create_arrival_rate(self, arrival_interval_list):
         sum_arrival = 0
@@ -45,7 +45,7 @@ class Database:
         arrival_rate = sum_arrival/len(arrival_interval_list)
         # convert into hours
         arrival_rate = 1/(arrival_rate/3600)
-        print("Arrival Rate: ", arrival_rate)
+        #print("Arrival Rate: ", arrival_rate)
 
         return arrival_rate
 
@@ -53,7 +53,7 @@ class Database:
         service_rate = total_service_time/total_customer
         # convert into hours
         service_rate = 1/(service_rate/3600)
-        print("Service Rate: ", service_rate)
+        #print("Service Rate: ", service_rate)
 
         return service_rate
 
@@ -63,7 +63,7 @@ class Database:
         docs = employees_ref.stream()
         for doc in docs:
             self.no_of_servers += 1
-        print("No of servers: ", self.no_of_servers)
+        #print("No of servers: ", self.no_of_servers)
 
     def retrieve_data(self):
         # All customer data can be read
@@ -105,17 +105,17 @@ class Database:
                 self.priority_list.append(priority_value)
 
             # Print customer details
-            print_customer_details(doc.id, arrival_time,
-                                   process_time, priority_value)
+            #print_customer_details(doc.id, arrival_time,
+                                   #process_time, priority_value)
 
 
 def print_customer_details(doc_id, arrival_time, process_time, priority):
-    print("-------------------")
+    """print("-------------------")
     print("Customer ID: ", doc_id)
     print("Arrival Time: ", arrival_time)
     print("Process Time: ", process_time)
     print("Priority: ", priority)
-    print("-------------------")
+    print("-------------------")"""
 
 
 main = Database(0, 0, 0, 0, [])

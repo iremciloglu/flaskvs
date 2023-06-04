@@ -253,6 +253,14 @@ class ActiveCustomerForm(FlaskForm):
     total_waited_time = StringField("Waited Time:")
     submit = SubmitField("Submit")  
 
+class AdminForm(FlaskForm):
+    name = StringField("Name:", validators=[DataRequired()])
+    surname = StringField("Surname:", validators=[DataRequired()])
+    birth_date = StringField("Birth date:", validators=[DataRequired()])
+    email = StringField("Email:", validators=[DataRequired()])
+    password = StringField("Password:", validators=[DataRequired()])
+    submit = SubmitField("Submit")
+
 @app.route('/delete_customer/<uid>', methods=["GET", "POST"])
 def delete_customer(uid):
     customersref = db.collection('Customers') # db connection with the "Customers" collection
@@ -270,6 +278,14 @@ def delete_employee(uid):
         employeesref.document(doc.id).delete()      # deleting the employee who has passed uid when found
     auth.delete_user(uid)   #deleting from auth
     return redirect('/emp')
+@app.route('/delete_admin/<uid>', methods=["GET", "POST"])
+def delete_admin(uid):
+    adminref = db.collection('Admins') # db connection with the "Admins" collection
+    query = adminref.where("uid", "==", uid).stream() # filtering according to the passed uid input
+    for doc in query:
+        adminref.document(doc.id).delete()   # deleting the admin who has passed uid when found
+    auth.delete_user(uid)   #deleting from auth    
+    return redirect('/')
 
 @app.route('/delete_queue_customer/<Queue>/<customer_id>', methods=["GET", "POST"])
 def delete_queue_customer(Queue,customer_id):
@@ -447,7 +463,33 @@ def simulation():
 
 @app.route("/settings", methods = ["POST", "GET"])
 def settings():
-    return render_template("settings.html")
+    uid="wV1jnvGJQEagV5XbcJlKpPdFoeI3"
+    adminref = db.collection('Admins')
+    query = adminref.where("uid", "==", uid).stream() # filtering according to the passed uid input
+    for doc in query:
+        admin = doc.to_dict()
+    
+    return render_template("settings.html", uid=uid,admin=admin)
+
+@app.route("/new_priority_add", methods = ["POST", "GET"])
+def new_priority_add():
+    priority={}
+    if request.method == "POST":
+        # Update the fields with the form data
+        priority['label'] = request.form.get('plabel')
+        priority['level'] = int(request.form.get('plevel'))
+
+        try:
+            #Append data to the firebase realtime database
+            prioritiesref = db.collection('Priorities')
+            prioritiesref.document().set(priority)
+            #Go to settings page
+            return redirect(url_for('settings'))
+        except:
+            #If there is any error, redirect to settings page
+            return redirect(url_for('settings'))
+        
+    return render_template('new_priority_adding.html')  
 
 
 
@@ -463,7 +505,46 @@ def delete_all_customers():
     all_customers = customersref.stream()
     for doc in all_customers:
         delete_customer(doc.uid)
+@app.route("/admin_edit/<uid>", methods = ["POST", "GET"])
+def admin_edit(uid):
+    #Query the Admins collection to get the admin with the specified uid
+    adminref = db.collection('Admins')
+    form = AdminForm()
+    query = adminref.where("uid", "==", uid).stream() # filtering according to the passed uid input
+    for doc in query:
+        admin = doc.to_dict()
+    if request.method == "POST":
+        # Update the admin fields with the form data
+        admin['name'] = request.form['name']
+        admin['surname'] = request.form['surname']
+        admin['b_date'] = request.form['birth_date']
+        admin['email'] = request.form['email']
 
+        if request.form['password']!="********":
+            admin['password'] = request.form['password']
+
+        #updating age according to birth_date
+        today = date.today()
+        reg_date = datetime.strptime(admin['b_date'], '%d/%m/%Y').date()
+        admin['age'] = today.year - reg_date.year - ((today.month, today.day) < (reg_date.month, reg_date.day))
+
+        try:
+            auth.update_user(uid,email=admin['email'],password=admin['password'])#updating in firebase auth
+            adminref.document(doc.id).update(admin) # Update the admin document in the Admins collection
+            flash("User Updated Successfully!")
+            return redirect("settings.html", uid=uid)
+        except:
+            flash("Error! Looks like there was a problem...try again!")
+            return render_template("admin_edit.html", form=form, admin=admin, uid=uid)
+    else:
+        return render_template("admin_edit.html", form=form, admin=admin, uid=uid)
+    
+@app.route('/graph_view', methods=['POST','GET'])
+def graph_view():
+    subprocess.run(['python', 'bank_simulation.py'])
+    with open('simulation_results.txt', 'r') as file:
+        output = file.readlines()
+    return render_template("graph_view.html", output=output[0], output2=output[1])
 
 if __name__ == "__main__":
     app.run(debug=True)

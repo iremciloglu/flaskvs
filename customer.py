@@ -16,11 +16,11 @@ class Customer:
         return f"Customer {self.id}"
 
     def print_customer_details(self):
-        print(f"\n\nCustomer {self.id} details:")
+        """print(f"\n\nCustomer {self.id} details:")
         print(f"Arrival time: {self.arrival_time:.2f}")
         print(f"Service time: {self.service_time:.2f}")
         print(f"Service start time: {self.service_start_time:.2f}")
         print(f"Departure time: {self.departure_time:.2f}")
         print(f"Wait time: {self.wait_time:.2f}")
         print(f"Priority: {self.priority}")
-        print(f"Server no: {self.server_no}")
+        print(f"Server no: {self.server_no}")"""
