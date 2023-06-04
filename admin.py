@@ -72,64 +72,66 @@ def logout():
     
 @app.route('/home',methods=["GET", "POST"])
 def home():
-    '''<h2>Lets put some statistics here such as: hold the #customers come that day,#customers register in a month,graph of customer number in week</h2>
-  <h2>#employees,graph of #tickets in each branch in a day, how many people in the queue for each branch maybe as a graph?
-  </h2>'''
-    #Get the current UTC datetime
-    now_utc = datetime.utcnow()
-    # Convert to the desired timezone (UTC+2 in this case)
-    now = now_utc + timedelta(hours=2)
-
-    num_of_cust_day=0
     
-    #for doc in docs.where('date_time','>=',now.day):#idk
-       #num_of_cust_day=+1
+    #num of employee
+    num_of_emp=0
+    empref = db.collection('Employees')
+    query = empref.stream()
+    for doc in query:
+        num_of_emp+=1
 
+    #num of total customer
+    num_of_cust_total=0
+    customerref = db.collection('Customers')
+    query = customerref.stream()
+    for doc in query:
+        num_of_cust_total+=1
 
-    #num_of_cust_day=20
-    num_of_cust_reg=30#for a month
-    num_of_emp=10
-    weekly_list=[]
-    week_label=['1st week','2nd week','3rd week','4th week']
+    #ticket number according to transaction type in a day(line)
+    transaction_list=[]
+    transaction_label=[]
 
-    week1_ticket=0#ticket num for each week for graph in a month(line)
+    transactionref = db.collection('Transactions')
+    query = transactionref.stream()
+    for doc in query:
+        t_action=doc.to_dict()
+        transaction_label.append(t_action['Name'])
+    
+    today = date.today()
+    for transaction in transaction_label:
+        t_count=0
+        query = ticketref.where('processType','==',transaction).stream()
+        for doc in query:
+            ticket=doc.to_dict()
+            if ticket['date_time'].date==today:
+                t_count+=1
+        transaction_list.append(t_count)  
 
-    #x = np.array(calendar.monthcalendar(now.year, now.month))
-   # week_of_month = np.where(x==day)[0][0] + 1
-
-    #for doc in docs.where('date_time','>=',now.month):#fix
-        #if doc.where('date_time','>=',now.day-7):
-            #week1_ticket=+1
-    week2_ticket=0
-    week3_ticket=0
-    week4_ticket=0
-    weekly_list.append(week1_ticket)
-    weekly_list.append(week2_ticket)
-    weekly_list.append(week3_ticket)
-    weekly_list.append(week4_ticket)
-    ######
-   
+    #ticket num for each branch for graph (bar)
     branch_ticket_list=[]
     branch_ticket_label=['Nicosia Branch','Kalkanlı Branch','Kyrenia Branch']
-    branch_1_ticket=0#ticket num for each branch for graph in a day(area)
-    branch_2_ticket=0
-    branch_3_ticket=0
-    #docs= ticketsref.where('date_time','>=',now.day).stream()
-   
+    ticketref = db.collection('Tickets')
     
-    branch_ticket_list.append(branch_1_ticket)
-    branch_ticket_list.append(branch_2_ticket)
-    branch_ticket_list.append(branch_3_ticket)
+    for branch in branch_ticket_label:
+        b_count=0
+        query = ticketref.where("branch_name", "==", branch).stream() # filtering according to the passed branch name 
+        for doc in query:
+            b_count+=1
+        branch_ticket_list.append(b_count)
+    
+    #customer in queue num for each branch for graph(line)
     branch_queue_list=[]
-    branch_1_queue=0#customer in queue num for each branch for graph in a day(column)
-    branch_2_queue=0
-    branch_3_queue=0
-    branch_queue_list.append(branch_1_queue)
-    branch_queue_list.append(branch_2_queue)
-    branch_queue_list.append(branch_3_queue)
-
-    return render_template("home.html",num_of_cust_day=num_of_cust_day,num_of_cust_reg=num_of_cust_reg,num_of_emp=num_of_emp,
-                           weekly_list=weekly_list,week_label=week_label,branch_ticket_list=branch_ticket_list,branch_ticket_label=branch_ticket_label,branch_queue_list=branch_queue_list)
+    queue_list=['queue1','queue2','queue3']
+    for queue in queue_list:
+        q_count=0
+        queueref = db.collection('Queue').document(queue).collection('TicketsInQueue')
+        query = queueref.stream()
+        for doc in query:
+            q_count+=1
+        branch_queue_list.append(q_count)
+    
+    return render_template("home.html",num_of_emp=num_of_emp,num_of_cust_total=num_of_cust_total,
+                           transaction_list=transaction_list,transaction_label=transaction_label,branch_ticket_list=branch_ticket_list,branch_ticket_label=branch_ticket_label,branch_queue_list=branch_queue_list)
 
 
 @app.route("/settings", methods = ["POST", "GET"])
