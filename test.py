@@ -7,7 +7,6 @@ from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 import os
 import base64
-import bcrypt
 from datetime import date, datetime, timedelta
 import random
 import subprocess
@@ -461,6 +460,12 @@ def graph_view():
     with open('simulation_results.txt', 'r') as file:
         output = file.readlines()
     return render_template("graph_view.html", output=output[0], output2=output[1])
+@app.route('/table_view', methods=['POST','GET'])
+def table_view():
+    subprocess.run(['python', 'bank_simulation.py'])
+    with open('simulation_results.txt', 'r') as file:
+        output = file.readlines()
+    return render_template("table_view.html", output3=output[2],output4=output[3],output5=output[4], output6=output[5])
 
 if __name__ == "__main__":
     app.run(debug=True)

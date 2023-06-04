@@ -6,11 +6,12 @@
   {% endblock %}
 
   {% block content %}
-
-<canvas id="lineChartSim" width="400" height="400"></canvas>
+<div style="position: relative; top: 50px;">
+<canvas id="firstSimGraph" width="400" height="400"></canvas>
+</div>
 <script>
-  var ctx = document.getElementById("lineChartSim").getContext("2d");
-  var lineChartSim = new Chart(ctx, {
+  var ctx = document.getElementById("firstSimGraph").getContext("2d");
+  var firstSimGraph = new Chart(ctx, {
     type: "line",
     data: {
       labels: {{ output }},
