@@ -1,0 +1,29 @@
+Index: templates/home.html
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>\r\n<!DOCTYPE html>\r\n<html lang=\"en\">\r\n  <head>\r\n  <meta charset=\"UTF-8\">\r\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\r\n  <title>Admin Home</title>\r\n  <link rel=\"stylesheet\" href=\"../static/home.css\">\r\n  </head>\r\n  <body class=\"bg\">\r\n\r\n  <ul>\r\n    <li style=\"background-color:rgb(234, 235, 242)\"><a href=\"http://127.0.0.1:5000/home\" style=\"color:#2812b6; font-family:'Times New Roman', Times, serif\"><b>METUBank</b></a></li>\r\n  \r\n    <li style=\"float:right\"><a href=\"#\">Log Out</a></li>\r\n    <li style=\"float:right\"><a href=\"#\">Settings</a></li>\r\n        <li class=\"dropdown\">\r\n          <a href=\"javascript:void(0)\" class=\"dropbtn\">View Lists</a>\r\n          <div class=\"dropdown-content\">\r\n            <a href=\"http://127.0.0.1:5000/emp\">View Employees</a>\r\n            <a href=\"http://127.0.0.1:5000/branch\">View Branches</a>\r\n            <a href=\"http://127.0.0.1:5000/queue\">View Queues</a>\r\n            <a href=\"http://127.0.0.1:5000/cust\">View Customers</a>\r\n          </div>\r\n        </li>  \r\n        <li><a href=\"#\">Simulation</a></li>    \r\n    </ul>\r\n   \r\n    <h1>Welcome admin!</h1>\r\n    <h2>Lets put some statistics here...</h2>\r\n    <h3>or idk something</h3>\r\n\r\n  </body>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/templates/home.html b/templates/home.html
+--- a/templates/home.html	
++++ b/templates/home.html	
+@@ -11,7 +11,7 @@
+ 
+   <ul>
+     <li style="background-color:rgb(234, 235, 242)"><a href="http://127.0.0.1:5000/home" style="color:#2812b6; font-family:'Times New Roman', Times, serif"><b>METUBank</b></a></li>
+-  
++    {% if "email" in session %}
+     <li style="float:right"><a href="#">Log Out</a></li>
+     <li style="float:right"><a href="#">Settings</a></li>
+         <li class="dropdown">
+@@ -25,7 +25,8 @@
+         </li>  
+         <li><a href="#">Simulation</a></li>    
+     </ul>
+-   
++    {% endif %}
++
+     <h1>Welcome admin!</h1>
+     <h2>Lets put some statistics here...</h2>
+     <h3>or idk something</h3>
