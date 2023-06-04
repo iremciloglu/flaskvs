@@ -6,8 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="../static/home.css">
+    {% block header %}
+    {% endblock %}
   </head>
-  <body class="bg">
+  <body class="bg"></body>>
     <ul class="navbar">
       <li style="background-color:rgb(234, 235, 242)">
         <a href="http://127.0.0.1:5000/home" style="color:#2812b6; font-family:Arial, Helvetica, sans-serif;"><b>METUBank</b></a>
@@ -22,10 +24,16 @@
           <a href="http://127.0.0.1:5000/cust">View Customers</a>
         </div>
       </li>
-      <li style="float:left"><a href="http://127.0.0.1:5000/run_simulation">Simulation</a></li>
+      <li class = "dropdown">
+        <a href="javascript:void(0)" class="dropbtn">Run Simulation</a>
+        <div class="dropdown-content">
+          <a href="http://127.0.0.1:5000/graph_view">View Graph</a>
+        </div>
+      </li>
     </ul>
 
-    
+    {% block content %}
+    {% endblock %}
 
   </body>
 </html>

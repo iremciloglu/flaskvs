@@ -7,9 +7,7 @@
  {% extends 'main.html' %}
   {% block content %}
     <h1>Welcome admin</h1>
-    <h2>Lets put some statistics here such as: hold the #customers come that day,#customers register in a month,graph of customer number in week</h2>
-  <h2>#employees,graph of #tickets in each branch in a day, how many people in the queue for each branch maybe as a graph?
-  </h2>
+    
   <canvas id="lineChartWeekly" width="400" height="400"></canvas>
   <script>
     var ctx=document.getElementById("lineChartWeekly").getContext("2d");

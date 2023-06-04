@@ -1,5 +1,5 @@
 from flask import *
-from flask_login import login_required, LoginManager,login_user,logout_user
+#from flask_login import login_required, LoginManager,login_user,logout_user
 from datetime import date, datetime, timedelta
 import subprocess
 from config_db import*
@@ -29,16 +29,8 @@ app.add_url_rule('/emp', methods=['GET','POST'],view_func=view_lists.employee)
 app.add_url_rule('/cust', methods=['GET','POST'],view_func=view_lists.customer)
 app.add_url_rule('/simulation', methods=['GET','POST'],view_func=simulation_web.simulation)
 app.add_url_rule('/run_simulation', methods=['GET','POST'],view_func=simulation_web.run_simulation_route)
+app.add_url_rule('/graph_view', methods=['GET','POST'],view_func=simulation_web.graph_view)
 
-
-
-# Flask_Login Stuff
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
-@login_manager.user_loader
-def load_user():
-	return db.collection('Admins').document('hMhBXy4cuNT7mG6VRR16').get()
 
 @app.route('/') # by default, web page starts with the login page
 def index():
@@ -80,6 +72,9 @@ def logout():
     
 @app.route('/home',methods=["GET", "POST"])
 def home():
+    '''<h2>Lets put some statistics here such as: hold the #customers come that day,#customers register in a month,graph of customer number in week</h2>
+  <h2>#employees,graph of #tickets in each branch in a day, how many people in the queue for each branch maybe as a graph?
+  </h2>'''
     #Get the current UTC datetime
     now_utc = datetime.utcnow()
     # Convert to the desired timezone (UTC+2 in this case)
