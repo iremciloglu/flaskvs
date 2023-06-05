@@ -109,12 +109,17 @@ class BankSimulation:
 
         # average number of customers in the system
         #print( f"Average number of customers in the system (Ls) (OK): {(self.total_service_time/self.simulation_time)+(self.total_wait_time/self.simulation_time)}")
-
+        average_waiting_time_system = (self.total_wait_time + self.total_service_time) / self.total_served_customers
+        average_customer_number_system = (self.total_service_time / self.simulation_time) + (
+                    self.total_wait_time / self.simulation_time)
         # average waiting time in the queue
         #print( f"Average waiting time in the queue (Wq)(ok): {(self.total_wait_time/self.total_waiting_customers)}")
 
         # average number of customers in the queue
         #print(f"Average number of customers in the queue (Lq): {self.total_wait_time/self.simulation_time}")
+        average_waiting_time_queue = self.total_wait_time/self.total_waiting_customers
+        average_customer_number_queue = self.total_wait_time/self.simulation_time
+        return average_waiting_time_system, average_customer_number_system, average_waiting_time_queue, average_customer_number_queue
 
 
 def simulation(simulation_customer_number, arrival_rate, service_rate, num_servers, priority_list):
@@ -236,7 +241,7 @@ def simulation(simulation_customer_number, arrival_rate, service_rate, num_serve
     #print("Simulation ended.")
     #print("Sim time: ", time.time()-timer_start_time)
 
-    bankSimulation.calculate_metrics()
+    average_waiting_time_system, average_customer_number_system, average_waiting_time_queue, average_customer_number_queue = bankSimulation.calculate_metrics()
     # Plot the graph
     #plt.plot(timer_total_time, timer_total_customers)
     #plt.xlabel('Total Time (seconds)')
@@ -244,11 +249,20 @@ def simulation(simulation_customer_number, arrival_rate, service_rate, num_serve
     #plt.title('Graph of Total Time vs Total Customer Number')
     #plt.show()
 
+    rounded_average_waiting_system =round(average_waiting_time_system, 3)
+    rounded_average_customer_system = round(average_customer_number_system,3)
+    rounded_average_waiting_queue = round(average_waiting_time_queue,3)
+    rounded_average_customer_number_queue= round(average_customer_number_queue,3)
     rounded_total_time_list = [round(elem, 3) for elem in timer_total_time]
+
     # write the outputs to the txt file
     with open("simulation_results.txt", "w") as file:
         file.write(f"{rounded_total_time_list}\n")
         file.write(f"{timer_total_customers}\n")
+        file.write(f"{rounded_average_waiting_system}\n")
+        file.write(f"{rounded_average_customer_system}\n")
+        file.write(f"{rounded_average_waiting_queue}\n")
+        file.write(f"{rounded_average_customer_number_queue}\n")
 
 if __name__ == "__main__":
 

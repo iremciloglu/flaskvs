@@ -1,0 +1,48 @@
+
+{% block header %}
+<title>{% block title %}Admin Page{% endblock %}</title>
+  <link rel="stylesheet" href="../static/home.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+  {% endblock %}
+  {% extends 'main.html' %}
+  {% block content %}
+<style>
+  .custom-table {
+    position: relative;
+    top: 100px;
+    margin-top: 20px;
+    width: 50%;
+    border-collapse: collapse;
+  }
+
+  .custom-table th,
+  .custom-table td {
+    border: 1px solid black;
+    padding: 8px;
+  }
+</style>
+
+<table class="custom-table">
+  <tr>
+    <th>Average Customer Number in System</th>
+    <th>Average Waiting Time in System</th>
+  </tr>
+  <tr>
+    <td>{{ output4 }}</td>
+    <td>{{ output3 }}</td>
+  </tr>
+</table>
+
+<table class="custom-table">
+  <tr>
+    <th>Average Customer Number in the Queue</th>
+    <th>Average Waiting Time in the Queue</th>
+  </tr>
+  <tr>
+    <td>{{ output6 }}</td>
+    <td>{{ output5 }}</td>
+  </tr>
+</table>
+
+{% endblock %}
+

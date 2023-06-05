@@ -6,7 +6,7 @@ from config_db import*
 import update_lists
 import view_lists
 import simulation_web
-
+import re
 app = Flask(__name__)
 app.config['SECRET_KEY'] = SECRET_KEY
 
@@ -30,7 +30,7 @@ app.add_url_rule('/cust', methods=['GET','POST'],view_func=view_lists.customer)
 app.add_url_rule('/simulation', methods=['GET','POST'],view_func=simulation_web.simulation)
 app.add_url_rule('/run_simulation', methods=['GET','POST'],view_func=simulation_web.run_simulation_route)
 app.add_url_rule('/graph_view', methods=['GET','POST'],view_func=simulation_web.graph_view)
-
+app.add_url_rule('/table_view', methods=['GET','POST'],view_func=simulation_web.table_view)
 
 @app.route('/') # by default, web page starts with the login page
 def index():
@@ -82,10 +82,10 @@ def home():
 
     #num of total customer
     num_of_cust_total=0
-    customerref = db.collection('Customers')
+    '''customerref = db.collection('Customers')
     query = customerref.stream()
     for doc in query:
-        num_of_cust_total+=1
+        num_of_cust_total+=1'''
 
     #ticket number according to transaction type in a day(line)
     transaction_list=[]
@@ -96,16 +96,17 @@ def home():
     for doc in query:
         t_action=doc.to_dict()
         transaction_label.append(t_action['Name'])
-    
+
+    ticketref = db.collection('Tickets')
     today = date.today()
     for transaction in transaction_label:
         t_count=0
         query = ticketref.where('processType','==',transaction).stream()
         for doc in query:
             ticket=doc.to_dict()
-            if ticket['date_time'].date==today:
+            if ticket['date_time'].date()==today:
                 t_count+=1
-        transaction_list.append(t_count)  
+        transaction_list.append(t_count)
 
     #ticket num for each branch for graph (bar)
     branch_ticket_list=[]
@@ -113,12 +114,15 @@ def home():
     ticketref = db.collection('Tickets')
     
     for branch in branch_ticket_label:
-        b_count=0
-        query = ticketref.where("branch_name", "==", branch).stream() # filtering according to the passed branch name 
+        b_count = 0
+        query = ticketref.where("branch_name", "==", branch).stream()  # filtering according to the passed branch name 
         for doc in query:
-            b_count+=1
+            ticket = doc.to_dict()
+            if ticket['date_time'].date() == today:
+                b_count += 1
         branch_ticket_list.append(b_count)
-    
+
+
     #customer in queue num for each branch for graph(line)
     branch_queue_list=[]
     queue_list=['queue1','queue2','queue3']
