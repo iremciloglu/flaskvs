@@ -82,10 +82,10 @@ def home():
 
     #num of total customer
     num_of_cust_total=0
-    '''customerref = db.collection('Customers')
+    customerref = db.collection('Customers')
     query = customerref.stream()
     for doc in query:
-        num_of_cust_total+=1'''
+        num_of_cust_total+=1
 
     #ticket number according to transaction type in a day(line)
     transaction_list=[]

@@ -7,12 +7,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="../static/home.css">
     {% block header %}
-    {% endblock %}
+        {% endblock %}
   </head>
-  <body class="bg"></body>>
+  <body class="bg">
     <ul class="navbar">
       <li style="background-color:rgb(234, 235, 242)">
-        <a href="http://127.0.0.1:5000/home" style="color:#2812b6; font-family:Arial, Helvetica, sans-serif;"><b>METUBank</b></a>
+        <a href="http://127.0.0.1:5000/home" style="color:#2812b6; font-family:Arial, Helvetica, sans-serif";><b>METUBank</b></a>
       </li>
       <li style="float:right"><a href="{{ url_for('logout') }}">Log Out</a></li>
       <li style="float:right"><a href="http://127.0.0.1:5000/settings">Settings</a></li>
@@ -33,8 +33,10 @@
       </li>
     </ul>
 
-    {% block content %}
-    {% endblock %}
+
+      {% block content %}
+      {% endblock %}
+    
 
   </body>
 </html>
