@@ -82,10 +82,10 @@ def home():
 
     #num of total customer
     num_of_cust_total=0
-    customerref = db.collection('Customers')
+    '''customerref = db.collection('Customers')
     query = customerref.stream()
     for doc in query:
-        num_of_cust_total+=1
+        num_of_cust_total+=1'''
 
     #ticket number according to transaction type in a day(line)
     transaction_list=[]
@@ -99,40 +99,40 @@ def home():
 
     ticketref = db.collection('Tickets')
     today = date.today()
-    for transaction in transaction_label:
+    '''for transaction in transaction_label:
         t_count=0
         query = ticketref.where('processType','==',transaction).stream()
         for doc in query:
             ticket=doc.to_dict()
             if ticket['date_time'].date()==today:
                 t_count+=1
-        transaction_list.append(t_count)
+        transaction_list.append(t_count)'''
 
     #ticket num for each branch for graph (bar)
     branch_ticket_list=[]
     branch_ticket_label=['Nicosia Branch','Kalkanlı Branch','Kyrenia Branch']
     ticketref = db.collection('Tickets')
     
-    for branch in branch_ticket_label:
+    '''for branch in branch_ticket_label:
         b_count = 0
         query = ticketref.where("branch_name", "==", branch).stream()  # filtering according to the passed branch name 
         for doc in query:
             ticket = doc.to_dict()
             if ticket['date_time'].date() == today:
                 b_count += 1
-        branch_ticket_list.append(b_count)
+        branch_ticket_list.append(b_count)'''
 
 
     #customer in queue num for each branch for graph(line)
     branch_queue_list=[]
-    queue_list=['queue1','queue2','queue3']
+    '''queue_list=['queue1','queue2','queue3']
     for queue in queue_list:
         q_count=0
         queueref = db.collection('Queue').document(queue).collection('TicketsInQueue')
         query = queueref.stream()
         for doc in query:
             q_count+=1
-        branch_queue_list.append(q_count)
+        branch_queue_list.append(q_count)'''
     
     return render_template("home.html",num_of_emp=num_of_emp,num_of_cust_total=num_of_cust_total,
                            transaction_list=transaction_list,transaction_label=transaction_label,branch_ticket_list=branch_ticket_list,branch_ticket_label=branch_ticket_label,branch_queue_list=branch_queue_list)
@@ -140,7 +140,7 @@ def home():
 
 @app.route("/settings", methods = ["POST", "GET"])
 def settings():
-    uid="wV1jnvGJQEagV5XbcJlKpPdFoeI3"
+    uid="UutTdUDo5RMOELRT2cIWmGskN473"
     adminref = db.collection('Admins')
     query = adminref.where("uid", "==", uid).stream() # filtering according to the passed uid input
     for doc in query:
@@ -167,6 +167,25 @@ def new_priority_add():
             return redirect(url_for('settings'))
         
     return render_template('new_priority_adding.html')    
+
+@app.route("/dynamic_priority", methods = ["POST", "GET"])
+def dynamic_priority():
+    dpriority=0
+    if request.method == "POST":
+        # Update the fields with the form data
+        dpriority = int(request.form.get('plabel'))
+
+        try:
+            #Append data to the firebase realtime database
+            prioritiesref = db.collection('DynamicPriority')
+            prioritiesref.document('threshold').update(dpriority)
+            #Go to settings page
+            return redirect(url_for('settings'))
+        except:
+            #If there is any error, redirect to settings page
+            return redirect(url_for('settings'))
+        
+    return render_template('dynamic_priority.html')    
 
 if __name__ == "__main__":
     app.run(debug=True)
