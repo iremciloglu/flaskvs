@@ -1,5 +1,4 @@
 from flask import *
-from flask_login import login_required, LoginManager,login_user,logout_user
 from config_db import*
 
 

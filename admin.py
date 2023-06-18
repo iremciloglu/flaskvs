@@ -1,7 +1,4 @@
 from flask import *
-#from flask_login import login_required, LoginManager,login_user,logout_user
-from datetime import date, datetime, timedelta
-import subprocess
 from config_db import*
 import update_lists
 import view_lists
