@@ -25,8 +25,6 @@ app.add_url_rule('/branch_emp/<name>', methods=['GET','POST'],view_func=view_lis
 app.add_url_rule('/queue/<Queue>',methods=['GET','POST'], view_func=view_lists.queue)
 app.add_url_rule('/emp', methods=['GET','POST'],view_func=view_lists.employee)
 app.add_url_rule('/cust', methods=['GET','POST'],view_func=view_lists.customer)
-app.add_url_rule('/simulation', methods=['GET','POST'],view_func=simulation_web.simulation)
-app.add_url_rule('/run_simulation', methods=['GET','POST'],view_func=simulation_web.run_simulation_route)
 app.add_url_rule('/graph_view', methods=['GET','POST'],view_func=simulation_web.graph_view)
 app.add_url_rule('/table_view', methods=['GET','POST'],view_func=simulation_web.table_view)
 
