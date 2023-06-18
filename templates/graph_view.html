@@ -3,11 +3,23 @@
 <title>{% block title %}Admin Page{% endblock %}</title>
   <link rel="stylesheet" href="../static/home.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+  <style>
+    .chart-container {
+      display: block;
+      width:410px; /* Adjust the gap between charts as needed */
+      background-color: rgb(249, 249, 243);
+      border-radius: 10px;
+    }
+
+  </style>
   {% endblock %}
   {% extends 'main.html' %}
   {% block content %}
-<div style="position: relative; top: 150px;">
+  <h1>Simulation Graph</h1>
+<div style="position: relative; top: 50px; left:20px;">
+  <div class="chart-container">
 <canvas id="firstSimGraph" width="400" height="400"></canvas>
+</div>
 </div>
 <script>
   var ctx = document.getElementById("firstSimGraph").getContext("2d");

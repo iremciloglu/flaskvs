@@ -69,15 +69,19 @@ class BankSimulation:
         return True
 
     def calculate_metrics(self):
-        """print(f"\n**********************************************************\n")
-
-        print("Calculating metrics...")
+      
         print(f"Total customers: {self.total_served_customers}")
         print(f"Total service time: {self.total_service_time}")
         print(f"Total wait time: {self.total_wait_time}")
-        print(f"Total waiting customers: {self.total_waiting_customers}")
-        print(f"\n**********************************************************\n")
-        print(
+        print(f"Simulation Time: {self.simulation_time}")
+        print(f"Total exit time: {self.total_exit_time}")
+        
+        """print(f"\n**********************************************************\n")
+
+        print("Calculating metrics...")"""
+        #print(f"Total waiting customers: {self.total_waiting_customers}")
+       # print(f"\n**********************************************************\n")
+        """print(
             f"Average service time: {self.total_service_time/self.total_served_customers}")
         if self.total_waiting_customers == 0:
             print("Average wait time: 0")
@@ -87,8 +91,7 @@ class BankSimulation:
         #print(f"Average number of customers in the queue (Not sure): {(self.total_wait_time/self.simulation_time)}")
         # Average number of customers in the system
         #print(f"Average number of customers in the system (Not sure): {self.total_service_time/self.simulation_time}")
-        #print(f"Simulation Time: {self.simulation_time}")
-        #print(f"Total exit time: {self.total_exit_time}")
+        
 
         # print(f"\n**********************************************************\n")
 
