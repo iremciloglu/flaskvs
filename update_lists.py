@@ -45,6 +45,11 @@ class AdminForm(FlaskForm):
    
     submit = SubmitField("Submit")
 
+class BranchForm(FlaskForm):
+    name = StringField("Name:", validators=[DataRequired()])
+    location = StringField("Coordinate of Location:(such as:37.7749,-122.4194)", validators=[DataRequired()])
+    submit = SubmitField("Submit")
+
 def delete_customer(uid):
     customersref = db.collection('Customers') # db connection with the "Customers" collection
     query = customersref.where("uid", "==", uid).stream() # filtering according to the passed uid input
@@ -358,3 +363,42 @@ def add_employee(name):
     else:
         return render_template("add_employee.html",name=name,form=form)
     
+def add_branch():
+    form=BranchForm()
+    branch={}
+    if request.method == "POST":#Only listen to POST
+        # Update the branch fields with the form data
+        branch['name'] = request.form['name']
+
+        #location handling
+         # Split the string into latitude and longitude
+        lat, lng = request.form['location'].split(',')
+
+        # Convert latitude and longitude to float
+        lat = float(lat)
+        lng = float(lng)
+
+        # Create a GeoPoint instance
+        geopoint = firestore.GeoPoint(lat, lng)
+        branch['location'] = geopoint
+
+        #num of branches
+        num_of_branches=0
+        branchref = db.collection('Branches')
+        snapshot = branchref.get()
+        num_of_branches = len(snapshot)
+
+        branch['Queue']="/Queue/queue"+str(num_of_branches+1)+"/TicketsInQueue"
+
+        try:
+            #Append data to the firebase realtime database
+            newbranchref = db.collection('Branches')
+            newbranchref.document().set(branch)
+            #Go to branch list page
+            return redirect(url_for('branch'))
+        except:
+            #If there is any error, redirect to branch list page
+            return redirect(url_for('branch'))
+
+    else:
+        return render_template("add_branch.html",form=form)

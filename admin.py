@@ -18,6 +18,7 @@ app.add_url_rule('/employee_edit/<uid>',methods=['GET','POST'], view_func=update
 app.add_url_rule('/admin_edit/<uid>', methods=['GET','POST'],view_func=update_lists.admin_edit)
 app.add_url_rule('/queue_cust_edit/<Queue>/<customer_id>', methods=['GET','POST'],view_func=update_lists.queue_cust_edit)
 app.add_url_rule('/add_customer', methods=['GET','POST'],view_func=update_lists.add_customer)
+app.add_url_rule('/add_branch', methods=['GET','POST'],view_func=update_lists.add_branch)
 app.add_url_rule('/add_employee/<name>', methods=['GET','POST'],view_func=update_lists.add_employee)
 app.add_url_rule('/branch', methods=['GET','POST'],view_func=view_lists.branch)
 app.add_url_rule('/branch_emp/<name>', methods=['GET','POST'],view_func=view_lists.branch_employee)
@@ -67,7 +68,7 @@ def logout():
 @app.route('/home',methods=["GET", "POST"])
 def home():
     #num of employee
-    '''num_of_emp=0
+    num_of_emp=0
     empref = db.collection('Employees')
     snapshot = empref.get()
     num_of_emp = len(snapshot)
@@ -102,7 +103,13 @@ def home():
 
     #ticket num for each branch for graph (bar)
     branch_ticket_list=[]
-    branch_ticket_label=['Nicosia Branch','Kalkanlı Branch','Kyrenia Branch']
+    branch_ticket_label=[]
+    today = date.today()#sil
+    branchref = db.collection('Branches')
+    query = branchref.stream()
+    for doc in query:
+        branch=doc.to_dict()
+        branch_ticket_label.append(branch['name'])
     ticketref = db.collection('Tickets')
     
     for branch in branch_ticket_label:
@@ -117,7 +124,12 @@ def home():
 
     #customer in queue num for each branch for graph(line)
     branch_queue_list=[]
-    queue_list=['queue1','queue2','queue3']
+    queue_list=[]
+    queueref = db.collection('Queue')
+    query = queueref.stream()
+    for doc in query:
+        queue= str(doc.id)
+        queue_list.append(queue)
     for queue in queue_list:
         q_count=0
         queueref = db.collection('Queue').document(queue).collection('TicketsInQueue')
@@ -128,7 +140,7 @@ def home():
     return render_template("home.html",num_of_emp=num_of_emp,num_of_cust_total=num_of_cust_total,
                            transaction_list=transaction_list,transaction_label=transaction_label,
                            branch_ticket_list=branch_ticket_list,branch_ticket_label=branch_ticket_label,
-                           branch_queue_list=branch_queue_list)'''
+                           branch_queue_list=branch_queue_list)
 
 @app.route("/settings", methods = ["POST", "GET"])
 def settings():
