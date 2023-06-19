@@ -1,5 +1,6 @@
 from flask import *
 from config_db import*
+from datetime import date
 import update_lists
 import view_lists
 import simulation_web
