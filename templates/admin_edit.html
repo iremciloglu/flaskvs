@@ -1,0 +1,49 @@
+
+
+{% block header %}
+  <title>Change Admin Info</title>
+  <link rel="stylesheet" href="../static/edit.css">
+  {% endblock %}
+ {% extends 'main.html' %}
+ 
+ {% block content %}
+  <h1>Admin Info</h1>
+  
+  <br/>
+<div class="shadow p-3 mb-5 bg-body rounded">
+  <form action="http://127.0.0.1:5000/admin_edit/{{uid}}" method="POST">
+      {{ form.hidden_tag() }}
+
+      {{ form.name.label(class="form-label") }}
+
+      {{ form.name(class="form-control", value=admin.name) }}
+      <br/>
+
+      {{ form.surname.label(class="form-label") }}
+
+      {{ form.surname(class="form-control", value=admin.surname) }}
+      <br/>
+
+      {{ form.email.label(class="form-label") }}
+
+      {{ form.email(class="form-control", value=admin.email) }}
+      <br/>
+      
+      {{ form.birth_date.label(class="form-label") }}
+
+      {{ form.birth_date(class="form-control", value=admin.b_date) }}
+
+      <br/>
+      
+      {{ form.password.label(class="form-label") }}
+
+      {{ form.password(class="form-control", value="********") }}
+
+      <br/>
+		
+      {{ form.submit(class="btn btn-secondary") }}
+
+  </form>
+</div>
+<br/><br/><br/>
+{% endblock %}

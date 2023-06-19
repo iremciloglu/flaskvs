@@ -1,0 +1,61 @@
+
+{% block header %}
+<title>{% block title %}Admin Page{% endblock %}</title>
+  <link rel="stylesheet" href="../static/home.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+  <style>
+    .chart-container {
+      display: block;
+      width:410px; /* Adjust the gap between charts as needed */
+      background-color: rgb(249, 249, 243);
+      border-radius: 10px;
+    }
+
+  </style>
+  {% endblock %}
+  {% extends 'main.html' %}
+  {% block content %}
+  <h1>Simulation Graph</h1>
+<div style="position: relative; top: 50px; left:20px;">
+  <div class="chart-container">
+<canvas id="firstSimGraph" width="400" height="400"></canvas>
+</div>
+</div>
+<script>
+  var ctx = document.getElementById("firstSimGraph").getContext("2d");
+  var firstSimGraph = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: {{ output }},
+      datasets: [
+        {
+          label: "Total Customer",
+          data: {{ output2 }},
+          fill: false,
+          borderColor: "rgb(75, 192, 192)",
+          lineTension: 0.1,
+        },
+      ],
+    },
+    options: {
+      responsive: false,
+      scales: {
+        x: {
+          display: true,
+          title: {
+            display: true,
+            text: "Total Time (s)",
+          },
+        },
+        y: {
+          display: true,
+          title: {
+            display: true,
+            text: "Total Customer",
+          },
+        },
+      },
+    },
+  });
+</script>
+{% endblock %}

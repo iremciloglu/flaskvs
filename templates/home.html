@@ -3,24 +3,71 @@
 <title>{% block title %}Admin Page{% endblock %}</title>
   <link rel="stylesheet" href="../static/home.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+  <style>
+    .chart-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr); /* Adjust the number of columns as needed */
+      gap: 15px; /* Adjust the gap between charts as needed */
+      background-color: rgb(249, 249, 243);
+      border-radius: 10px;
+    }
+    .box-container {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr); /* Adjust the number of columns as needed */
+      gap: 10px; /* Adjust the gap between as needed */
+      margin-bottom: 20px;
+    }
+    .box {
+    width: 400px;
+    height: 20px;
+    border: 2px solid #000;
+    margin: 0 auto 15px;
+    text-align: center;
+    padding: 20px;
+    font-weight: bold;
+    border-radius: 10px;
+  }
+
+  .emp {
+    background-color: #B9FFAB;
+  border-color: #116400;
+  color: #116400;
+  }
+
+  .cust {
+    background-color: #FFF484;
+    border-color: #c6b203;
+    color: #9c8d03;
+  }
+
+    
+  </style>
   {% endblock %}
  {% extends 'main.html' %}
   {% block content %}
-    <h1>Welcome admin</h1>
-    <h2>Lets put some statistics here such as: hold the #customers come that day,#customers register in a month,graph of customer number in week</h2>
-  <h2>#employees,graph of #tickets in each branch in a day, how many people in the queue for each branch maybe as a graph?
-  </h2>
-  <canvas id="lineChartWeekly" width="400" height="400"></canvas>
+    <h1>Welcome, Admin!</h1>
+    <div class="box-container">
+    <div class="emp box">
+      Number of Employee:{{num_of_emp}}
+    </div>
+    <div class="cust box">
+      Number of Total Customer:{{num_of_cust_total}}
+    </div></div>
+    <div class="chart-container">
+      <canvas id="lineChartTransaction" width="400" height="400"></canvas>
+      <canvas id="barChartBranch" width="400" height="400"></canvas>
+      <canvas id="lineChartQueue" width="400" height="400"></canvas>
+    </div>
   <script>
-    var ctx=document.getElementById("lineChartWeekly").getContext("2d");
-    var lineChartWeekly= new Chart(ctx,{
+    var ctx=document.getElementById("lineChartTransaction").getContext("2d");
+    var lineChartTransaction= new Chart(ctx,{
       type:"line",
       data:{
-        labels: {{ week_label|tojson }},
+        labels: {{ transaction_label|tojson }},
         datasets:[
         {
-          label:"Customers",
-          data: {{ weekly_list|tojson }},
+          label:"Number of Customer for Today",
+          data: {{ transaction_list|tojson }},
           fill: false,
           borderColor:"rgb(75,192,192)",
           lineTension: 0.1
@@ -31,10 +78,7 @@
         responsive:false
       }
     });
-    </script>
-
-<canvas id="barChartBranch" width="400" height="400"></canvas>
-<script>
+    
   var cta=document.getElementById("barChartBranch").getContext("2d");
   var barChartBranch= new Chart(cta,{
     type:"bar",
@@ -42,10 +86,30 @@
       labels: {{ branch_ticket_label|tojson }},
       datasets:[
       {
-        label:"Tickets",
+        label:"Number of Ticket for Today",
         data: {{ branch_ticket_list|tojson }},
         fill: false,
-        borderColor:"rgb(190,80,190)",
+        borderColor:"rgb(190,180,90)",
+        lineTension: 0.1
+      }
+      ]
+    },
+    options:{
+      responsive:false
+    }
+  });
+  
+  var ctx=document.getElementById("lineChartQueue").getContext("2d");
+  var lineChartQueue= new Chart(ctx,{
+    type:"line",
+    data:{
+      labels: {{ branch_ticket_label|tojson }},
+      datasets:[
+      {
+        label:"Number of Customer in the Queue",
+        data: {{ branch_queue_list|tojson }},
+        fill: false,
+        borderColor:"rgb(175,92,192)",
         lineTension: 0.1
       }
       ]
