@@ -3,6 +3,7 @@ from config_db import*
 import update_lists
 import view_lists
 import simulation_web
+from datetime import date
 app = Flask(__name__)
 app.config['SECRET_KEY'] = SECRET_KEY
 
@@ -65,7 +66,7 @@ def logout():
 @app.route('/home',methods=["GET", "POST"])
 def home():
     #num of employee
-    num_of_emp=0
+    '''num_of_emp=0
     empref = db.collection('Employees')
     snapshot = empref.get()
     num_of_emp = len(snapshot)
@@ -126,7 +127,7 @@ def home():
     return render_template("home.html",num_of_emp=num_of_emp,num_of_cust_total=num_of_cust_total,
                            transaction_list=transaction_list,transaction_label=transaction_label,
                            branch_ticket_list=branch_ticket_list,branch_ticket_label=branch_ticket_label,
-                           branch_queue_list=branch_queue_list)
+                           branch_queue_list=branch_queue_list)'''
 
 @app.route("/settings", methods = ["POST", "GET"])
 def settings():
