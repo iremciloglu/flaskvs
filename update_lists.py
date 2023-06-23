@@ -91,34 +91,12 @@ def customer_edit(uid):
         customer = doc.to_dict()
     if request.method == "POST":
         # Update the customer fields with the form data
-        try:
-            if request.form['name']!=' ':
-                customer['name'] = request.form['name']
-            else:   
-                flash("Enter a name.")
-                
-            if request.form['surname']!=' ':
-                customer['surname'] = request.form['surname']
-            else:   
-                flash("Enter a surname.")
-                
-            if request.form['priority']!=' ':
-                customer['priority'] = int(request.form['priority'])
-            else:   
-                flash("Enter a priority.")
-               
-            if request.form['reg_date']!=' ':
-                customer['reg_date'] = request.form['birth_date']#we keep birth day as a reg_date in db
-            else:   
-                flash("Enter a birth date.")
-                
-            if request.form['email']!=' ':
-                customer['email'] = request.form['email']
-            else:   
-                flash("Enter an email.")
-
-        except:
-            return render_template("customer_edit.html", form=form, customer=customer, uid=uid)
+        
+        customer['name'] = request.form['name']
+        customer['surname'] = request.form['surname']
+        customer['priority'] = int(request.form['priority'])
+        customer['reg_date'] = request.form['birth_date']#we keep birth day as a reg_date in db
+        customer['email'] = request.form['email']
         
 
         #updating age according to birth_date
@@ -146,30 +124,13 @@ def employee_edit(uid):
         employee = doc.to_dict()
     if request.method == "POST":
         # Update the employee fields with the form data
-        try:
-            if request.form['name']!=' ':
-                employee['name'] = request.form['name']
-            else:   
-                flash("Enter a name.")
-                
-            if request.form['surname']!=' ':
-                employee['surname'] = request.form['surname']
-            else:   
-                flash("Enter a surname.")
-               
-            if request.form['reg_date']!=' ':
-                employee['reg_date'] = request.form['birth_date']#we keep birth day as a reg_date in db
-            else:   
-                flash("Enter a birth date.")
-                
-            if request.form['email']!=' ':
-                employee['email'] = request.form['email']
-            else:   
-                flash("Enter an email.")
-
-        except:
-            return render_template("employee_edit.html", form=form, employee=employee, uid=uid)
         
+  
+        employee['name'] = request.form['name']
+        employee['surname'] = request.form['surname']
+        employee['reg_date'] = request.form['birth_date']#we keep birth day as a reg_date in db
+        employee['email'] = request.form['email']
+  
         #updating the branch
         branchesref= db.collection('Branches')
         branch_query = branchesref.where("name", "==", request.form['branch_name']).stream()  
@@ -206,34 +167,12 @@ def admin_edit(uid):
         admin = doc.to_dict()
     if request.method == "POST":
         # Update the admin fields with the form data
-        try:
-            if request.form['name']!=' ':
-                admin['name'] = request.form['name']
-            else:   
-                flash("Enter a name.")
-                
-            if request.form['surname']!=' ':
-                admin['surname'] = request.form['surname']
-            else:   
-                flash("Enter a surname.")
-               
-            if request.form['reg_date']!=' ':
-                admin['b_date'] = request.form['birth_date']#we keep birth day as a reg_date in db
-            else:   
-                flash("Enter a birth date.")
-                
-            if request.form['email']!=' ':
-                admin['email'] = request.form['email']
-            else:   
-                flash("Enter an email.")
-            
-            if request.form['password']!=' ':
-                admin['password'] = request.form['password']
-            else:   
-                flash("Enter a password.")
-
-        except:
-            return render_template("admin_edit.html", form=form, admin=admin, uid=uid)
+       
+        admin['name'] = request.form['name']
+        admin['surname'] = request.form['surname']
+        admin['b_date'] = request.form['birth_date']#we keep birth day as a reg_date in db
+        admin['email'] = request.form['email']
+        admin['password'] = request.form['password']
 
         if request.form['password']!="********":
             admin['password'] = request.form['password']
@@ -264,26 +203,10 @@ def queue_cust_edit(Queue,customer_id):
 
     if request.method == "POST":
         # Update the customer fields with the form data
-        try:
-            
-                
-            if request.form['priority']!=' ':
-                active_customer['priority'] = int(request.form['priority'])
-            else:   
-                flash("Enter a priority.")
-               
-            if request.form['processType']!=' ':
-                active_customer['processType'] = request.form['processType']
-            else:   
-                flash("Enter a process type.")
-                
-            if request.form['total_waited_time']!=' ':
-                active_customer['total_waited_time'] = request.form['total_waited_time']
-            else:   
-                flash("Enter a waited time.")
-
-        except:
-            return render_template("queue_cust_edit.html", form=form, active_customer=active_customer, Queue=Queue, customer_id=customer_id)
+ 
+        active_customer['priority'] = int(request.form['priority'])
+        active_customer['processType'] = request.form['processType']
+        active_customer['total_waited_time'] = request.form['total_waited_time']
 
         try:
             queueref.document(doc.id).update(active_customer) # Update the customer document in the Queue collection
