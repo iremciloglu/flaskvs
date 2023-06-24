@@ -5,7 +5,7 @@ from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 from datetime import date, datetime
 from config_db import*
-
+import view_lists
 
 
 
@@ -34,6 +34,11 @@ class ActiveCustomerForm(FlaskForm):
     priority = StringField("Priority:", validators=[DataRequired()])
     processType =StringField("Process Type:")
     total_waited_time = StringField("Waited Time:")
+    submit = SubmitField("Submit")  
+
+class ActiveCustomerAddingForm(FlaskForm):
+    email = StringField("Email:", validators=[DataRequired()])
+    processType =StringField("Process Type:", validators=[DataRequired()])
     submit = SubmitField("Submit")  
 
 class AdminForm(FlaskForm):
@@ -285,7 +290,7 @@ def add_employee(name):
 
     else:
         return render_template("add_employee.html",name=name,form=form)
-    
+
 def add_branch():
     form=BranchForm()
     branch={}
